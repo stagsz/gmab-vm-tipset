@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"New-Item -ItemType Directory -Force \\\"C:\\\\Users\\\\staff\\\\anthropicFun\\\\MYkicktipp\\\\gmab-vm-tipset\\\\src\\\\context\\\" | Out-Null\\nNew-Item -ItemType Directory -Force \\\"C:\\\\Users\\\\staff\\\\anthrop...",
+  "error": "Exit code 127\n/usr/bin/bash: line 6: New-Item: command not found\n/usr/bin/bash: line 6: Out-Null: command not found\n/usr/bin/bash: line 7: New-Item: command not found\n/usr/bin/bash: line 7: Out-Null: command not found\n/usr/bin/bash: line 8: New-Item: command not found\n/usr/bin/bash: line 8: Out-Null: command not found\n/usr/bin/bash: line 9: New-Item: command not found\n/usr/bin/bash: line 9: Out-Null: command not found\n/usr/bin/bash: line 10: New-Item: command not found\n/usr/bin/bash: line 10: Ou...",
+  "timestamp": "2026-05-20T10:55:04.069Z",
+  "retry_count": 2
+}

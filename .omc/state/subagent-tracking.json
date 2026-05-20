@@ -1,0 +1,17 @@
+{
+  "agents": [
+    {
+      "agent_id": "ade3f40761f2413f0",
+      "agent_type": "executor",
+      "started_at": "2026-05-20T10:37:05.003Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-05-20T11:01:19.570Z",
+      "duration_ms": 1454567
+    }
+  ],
+  "total_spawned": 1,
+  "total_completed": 1,
+  "total_failed": 0,
+  "last_updated": "2026-05-20T11:01:19.738Z"
+}

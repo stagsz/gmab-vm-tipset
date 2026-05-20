@@ -1,0 +1,177 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import {
+  Trophy,
+  ListOrdered,
+  Star,
+  CreditCard,
+  CheckCircle,
+  Target,
+  Award,
+} from 'lucide-react';
+import { useLocale } from '@/context/LocaleContext';
+import { usePlayer } from '@/context/PlayerContext';
+import { ENTRY_FEE_SEK } from '@/data/matches';
+
+export default function HomePage() {
+  const { t } = useLocale();
+  const { player, login } = usePlayer();
+  const [name, setName] = useState('');
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+
+  function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    if (!name.trim() || !code.trim()) return;
+    const ok = login(name, code);
+    if (!ok) {
+      setError(t.auth.invalidCode);
+    }
+  }
+
+  const steps = [
+    { icon: CheckCircle, text: t.home.step1 },
+    { icon: ListOrdered, text: t.home.step2 },
+    { icon: Star, text: t.home.step3 },
+    { icon: CreditCard, text: `${t.home.step4} (${ENTRY_FEE_SEK} SEK)` },
+  ];
+
+  const prizes = [
+    { label: t.home.prize1, color: 'text-yellow-400' },
+    { label: t.home.prize2, color: 'text-gray-300' },
+    { label: t.home.prize3, color: 'text-amber-600' },
+  ];
+
+  const scoring = [
+    { label: t.home.exactResult, pts: t.home.exactResultPts },
+    { label: t.home.correctSign, pts: t.home.correctSignPts },
+    { label: t.home.maxPerMatch, pts: '' },
+  ];
+
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-10 space-y-12">
+      {/* Hero */}
+      <section className="text-center space-y-4">
+        <div className="flex justify-center">
+          <div className="rounded-full bg-green-600/20 p-5 ring-1 ring-green-600/40">
+            <Trophy className="h-14 w-14 text-green-500" />
+          </div>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+          {t.home.welcome}
+        </h1>
+        <p className="text-lg text-gray-400 max-w-2xl mx-auto">{t.home.description}</p>
+        <p className="text-sm font-semibold text-green-400">{t.app.deadline}</p>
+      </section>
+
+      {/* Login or CTA */}
+      {player ? (
+        <section className="flex flex-col items-center gap-4">
+          <p className="text-lg text-gray-300">
+            {t.auth.welcome},{' '}
+            <span className="font-bold text-white">{player.name}</span>!
+          </p>
+          <Link
+            href="/tipset"
+            className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-8 py-3 text-base font-semibold text-white hover:bg-green-500 transition-colors"
+          >
+            <ListOrdered className="h-5 w-5" />
+            {t.nav.predictions}
+          </Link>
+        </section>
+      ) : (
+        <section className="mx-auto max-w-sm rounded-xl bg-gray-900 border border-gray-800 p-6 space-y-5">
+          <h2 className="text-xl font-semibold text-white text-center">{t.auth.join}</h2>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-1">
+              <label className="block text-sm text-gray-400">{t.auth.enterName}</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t.auth.enterName}
+                required
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-white placeholder-gray-500 focus:border-green-500 focus:outline-none text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-sm text-gray-400">{t.auth.enterCode}</label>
+              <input
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="GMAB2026"
+                required
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-white placeholder-gray-500 focus:border-green-500 focus:outline-none text-sm uppercase"
+              />
+            </div>
+            {error && <p className="text-sm text-red-400">{error}</p>}
+            <button
+              type="submit"
+              className="w-full rounded-lg bg-green-600 py-2.5 text-sm font-semibold text-white hover:bg-green-500 transition-colors"
+            >
+              {t.auth.join}
+            </button>
+          </form>
+        </section>
+      )}
+
+      {/* How it works */}
+      <section className="space-y-5">
+        <h2 className="text-xl font-semibold text-white">{t.home.howTo}</h2>
+        <ol className="space-y-3">
+          {steps.map(({ icon: Icon, text }, i) => (
+            <li key={i} className="flex items-start gap-3 rounded-lg bg-gray-900 border border-gray-800 px-4 py-3">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-600 text-xs font-bold text-white">
+                {i + 1}
+              </span>
+              <div className="flex items-center gap-2 text-sm text-gray-300 pt-0.5">
+                <Icon className="h-4 w-4 text-green-400 shrink-0" />
+                {text}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* Scoring + Prizes side by side on md+ */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Scoring */}
+        <section className="rounded-xl bg-gray-900 border border-gray-800 p-5 space-y-4">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+            <Target className="h-5 w-5 text-green-500" />
+            {t.home.scoring}
+          </h2>
+          <ul className="space-y-2">
+            {scoring.map(({ label, pts }, i) => (
+              <li key={i} className="flex items-center justify-between text-sm">
+                <span className="text-gray-300">{label}</span>
+                {pts && (
+                  <span className="font-semibold text-green-400 ml-2 shrink-0">{pts}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Prizes */}
+        <section className="rounded-xl bg-gray-900 border border-gray-800 p-5 space-y-4">
+          <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+            <Award className="h-5 w-5 text-yellow-400" />
+            {t.home.prizes}
+          </h2>
+          <ul className="space-y-2">
+            {prizes.map(({ label, color }, i) => (
+              <li key={i} className={`text-sm font-medium ${color}`}>
+                {label}
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </div>
+  );
+}
