@@ -38,6 +38,8 @@ export const it = {
     correctSign: "Segno corretto (1, X o 2)",
     correctSignPts: "1 punto",
     maxPerMatch: "Max per partita: 4 punti",
+    bonusTitle: "Domande bonus",
+    bonusNote: "I punti vengono assegnati quando il campione del mondo è incoronato",
   },
   predictions: {
     title: "I tuoi pronostici",

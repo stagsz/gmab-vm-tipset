@@ -55,6 +55,14 @@ export default function HomePage() {
     { label: t.home.maxPerMatch, pts: '' },
   ];
 
+  const bonusScoring = [
+    { label: t.predictions.champion, pts: t.predictions.championPts },
+    { label: t.predictions.topScorer, pts: t.predictions.topScorerPts },
+    { label: t.predictions.bronzeWinner, pts: t.predictions.bronzeWinnerPts },
+    { label: t.predictions.mostGoalsGroup, pts: t.predictions.mostGoalsGroupPts },
+    { label: t.predictions.mostConcededGroup, pts: t.predictions.mostConcededGroupPts },
+  ];
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 space-y-12">
       {/* Hero */}
@@ -161,6 +169,20 @@ export default function HomePage() {
               </li>
             ))}
           </ul>
+
+          {/* Bonus questions */}
+          <div className="border-t border-gray-800 pt-3 space-y-2">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{t.home.bonusTitle}</p>
+            <ul className="space-y-2">
+              {bonusScoring.map(({ label, pts }, i) => (
+                <li key={i} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-300">{label}</span>
+                  <span className="font-semibold text-green-400 ml-2 shrink-0">{pts}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-gray-500 italic pt-1">{t.home.bonusNote}</p>
+          </div>
         </section>
 
         {/* Prizes */}

@@ -38,6 +38,8 @@ export const sv = {
     correctSign: "Rätt tecken (1, X eller 2)",
     correctSignPts: "1 poäng",
     maxPerMatch: "Max per match: 4 poäng",
+    bonusTitle: "Bonusfrågor",
+    bonusNote: "Poäng delas ut när VM-mästaren är korad",
   },
   predictions: {
     title: "Ditt tipset",
