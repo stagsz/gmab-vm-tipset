@@ -103,6 +103,8 @@ export const sv = {
     totalPlayers: "Antal spelare",
     matchResult: "Resultat",
     enterPassword: "Ange admin-lösenord för att fortsätta",
+    syncScores: "Hämta resultat",
+    syncing: "Hämtar...",
     paid: "Betald",
     unpaid: "Ej betald",
     markPaid: "Markera betald",

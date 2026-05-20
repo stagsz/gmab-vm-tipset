@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shield, Users, Award, Key, Save, Check, Lock } from 'lucide-react';
+import { Shield, Users, Award, Key, Save, Check, Lock, RefreshCw } from 'lucide-react';
 import { useLocale } from '@/context/LocaleContext';
 import { supabase } from '@/lib/supabase';
 import { bonusQuestions, BonusQuestionKey } from '@/data/matches';
@@ -54,6 +54,8 @@ function ResultsTab({ t }: { t: ReturnType<typeof useLocale>['t'] }) {
   const [matches, setMatches] = useState<SupabaseMatch[]>([]);
   const [inputs, setInputs] = useState<Record<number, { home: string; away: string }>>({});
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
 
   useEffect(() => {
     supabase
@@ -103,8 +105,47 @@ function ResultsTab({ t }: { t: ReturnType<typeof useLocale>['t'] }) {
     }, 2000);
   }
 
+  async function syncScores() {
+    setSyncing(true);
+    setSyncMsg('');
+    try {
+      const res = await fetch('/api/sync-scores');
+      const json = await res.json();
+      if (!res.ok) {
+        setSyncMsg(`Error: ${json.error}`);
+      } else {
+        setSyncMsg(`Updated ${json.updated} / ${json.total} matches`);
+        // Reload matches to reflect new scores
+        const { data } = await supabase.from('matches').select('*').order('match_date').order('match_nr');
+        if (data) {
+          setMatches(data as SupabaseMatch[]);
+          const next: Record<number, { home: string; away: string }> = {};
+          for (const m of data as SupabaseMatch[]) {
+            next[m.id] = { home: m.home_goals !== null ? String(m.home_goals) : '', away: m.away_goals !== null ? String(m.away_goals) : '' };
+          }
+          setInputs(next);
+        }
+      }
+    } catch {
+      setSyncMsg('Network error');
+    }
+    setSyncing(false);
+  }
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={syncScores}
+          disabled={syncing}
+          className="flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-600 transition-colors disabled:opacity-60"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${syncing ? 'animate-spin' : ''}`} />
+          {syncing ? t.admin.syncing : t.admin.syncScores}
+        </button>
+        {syncMsg && <span className="text-xs text-gray-400">{syncMsg}</span>}
+      </div>
+      <div className="space-y-2">
       {matches.map((match) => {
         const val = inputs[match.id] ?? { home: '', away: '' };
         const hasResult = match.status === 'finished' &&
@@ -174,6 +215,7 @@ function ResultsTab({ t }: { t: ReturnType<typeof useLocale>['t'] }) {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

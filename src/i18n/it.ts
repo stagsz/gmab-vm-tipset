@@ -103,6 +103,8 @@ export const it = {
     totalPlayers: "Totale giocatori",
     matchResult: "Risultato",
     enterPassword: "Inserisci la password admin per continuare",
+    syncScores: "Sincronizza risultati",
+    syncing: "Sincronizzazione...",
     paid: "Pagato",
     unpaid: "Non pagato",
     markPaid: "Segna come pagato",
