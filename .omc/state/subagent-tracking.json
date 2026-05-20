@@ -24,10 +24,17 @@
       "status": "completed",
       "completed_at": "2026-05-20T19:14:50.723Z",
       "duration_ms": 94339
+    },
+    {
+      "agent_id": "a1b063b46a7990c6d",
+      "agent_type": "writer",
+      "started_at": "2026-05-20T19:15:33.579Z",
+      "parent_mode": "none",
+      "status": "running"
     }
   ],
-  "total_spawned": 3,
+  "total_spawned": 4,
   "total_completed": 2,
   "total_failed": 0,
-  "last_updated": "2026-05-20T19:14:50.834Z"
+  "last_updated": "2026-05-20T19:18:57.460Z"
 }

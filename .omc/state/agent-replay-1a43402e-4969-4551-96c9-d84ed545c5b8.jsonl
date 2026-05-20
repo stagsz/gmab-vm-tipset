@@ -6,3 +6,7 @@
 {"t":0,"agent":"aad8af6","agent_type":"Explore","event":"agent_start","parent_mode":"none"}
 {"t":0,"agent":"af5beb0","agent_type":"unknown","event":"agent_stop","success":true}
 {"t":0,"agent":"aad8af6","agent_type":"Explore","event":"agent_stop","success":true,"duration_ms":94339}
+{"t":0,"agent":"a1b063b","agent_type":"writer","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a384756","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"a2caf0a","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"a14c1e8","agent_type":"unknown","event":"agent_stop","success":true}
