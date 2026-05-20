@@ -4,3 +4,5 @@
 {"t":0,"agent":"system","event":"skill_invoked","skill_name":"anthropic-skills:fotball-vm-tipset"}
 {"t":0,"agent":"ac479d8","agent_type":"unknown","event":"agent_stop","success":true}
 {"t":0,"agent":"aad8af6","agent_type":"Explore","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"af5beb0","agent_type":"unknown","event":"agent_stop","success":true}
+{"t":0,"agent":"aad8af6","agent_type":"Explore","event":"agent_stop","success":true,"duration_ms":94339}

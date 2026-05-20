@@ -138,6 +138,48 @@
       "accessCount": 2,
       "lastAccessed": 1779301395335,
       "type": "file"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 1,
+      "lastAccessed": 1779304453691,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1779304453983,
+      "type": "file"
+    },
+    {
+      "path": "CLAUDE.md",
+      "accessCount": 1,
+      "lastAccessed": 1779304454094,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\layout.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1779304457367,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1779304458015,
+      "type": "file"
+    },
+    {
+      "path": "src\\context\\PlayerContext.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1779304458574,
+      "type": "file"
+    },
+    {
+      "path": "src\\data\\matches.ts",
+      "accessCount": 1,
+      "lastAccessed": 1779304458766,
+      "type": "file"
     }
   ],
   "userDirectives": []
