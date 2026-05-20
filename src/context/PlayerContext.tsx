@@ -7,6 +7,7 @@ interface Player {
   id: string;
   name: string;
   paid: boolean;
+  is_admin: boolean;
 }
 
 interface PlayerContextValue {
@@ -33,11 +34,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         // Verify the player still exists in Supabase
         const { data, error } = await supabase
           .from('players')
-          .select('id, name, paid')
+          .select('id, name, paid, is_admin')
           .eq('id', storedId)
           .single();
         if (!error && data) {
-          setPlayer({ id: data.id, name: data.name, paid: data.paid ?? false });
+          setPlayer({ id: data.id, name: data.name, paid: data.paid ?? false, is_admin: data.is_admin ?? false });
         } else {
           // Player no longer valid — clear storage
           localStorage.removeItem(LS_PLAYER_ID);
@@ -73,7 +74,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     // 3. Returning player? Same invite_code + name (case-insensitive) → reuse oldest row, skip insert
     const { data: existingRows } = await supabase
       .from('players')
-      .select('id, name, paid')
+      .select('id, name, paid, is_admin')
       .eq('invite_code', upperCode)
       .ilike('name', normalizedName)
       .order('created_at', { ascending: true })
@@ -83,7 +84,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     if (existing) {
       localStorage.setItem(LS_PLAYER_ID, existing.id);
       localStorage.setItem(LS_PLAYER_NAME, existing.name);
-      setPlayer({ id: existing.id, name: existing.name, paid: existing.paid ?? false });
+      setPlayer({ id: existing.id, name: existing.name, paid: existing.paid ?? false, is_admin: existing.is_admin ?? false });
       return { ok: true };
     }
 
@@ -91,7 +92,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const { data: newPlayer, error: insertErr } = await supabase
       .from('players')
       .insert({ name: normalizedName, invite_code: upperCode })
-      .select('id, name, paid')
+      .select('id, name, paid, is_admin')
       .single();
 
     if (insertErr || !newPlayer) {
@@ -107,7 +108,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     // 6. Store in localStorage and set state
     localStorage.setItem(LS_PLAYER_ID, newPlayer.id);
     localStorage.setItem(LS_PLAYER_NAME, newPlayer.name);
-    setPlayer({ id: newPlayer.id, name: newPlayer.name, paid: newPlayer.paid ?? false });
+    setPlayer({ id: newPlayer.id, name: newPlayer.name, paid: newPlayer.paid ?? false, is_admin: newPlayer.is_admin ?? false });
 
     return { ok: true };
   }

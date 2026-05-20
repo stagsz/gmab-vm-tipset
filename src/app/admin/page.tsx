@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, Users, Award, Key, Save, Check, Lock, RefreshCw, LogOut } from 'lucide-react';
 import { useLocale } from '@/context/LocaleContext';
+import { usePlayer } from '@/context/PlayerContext';
 import { supabase } from '@/lib/supabase';
 import { bonusQuestions, BonusQuestionKey } from '@/data/matches';
 
@@ -466,17 +467,20 @@ function CodesTab({ t }: { t: ReturnType<typeof useLocale>['t'] }) {
 
 export default function AdminPage() {
   const { t } = useLocale();
+  const { player } = usePlayer();
   const [authed, setAuthed] = useState(false);
   const [password, setPassword] = useState('');
   const [pwError, setPwError] = useState('');
   const [activeTab, setActiveTab] = useState<TabKey>('results');
 
-  // Check session on mount
+  // Check session on mount; admin players bypass the password gate
   useEffect(() => {
     if (typeof window !== 'undefined' && sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true') {
       setAuthed(true);
     }
   }, []);
+
+  const effectiveAuthed = authed || !!player?.is_admin;
 
   function handleLogin(e: React.SyntheticEvent) {
     e.preventDefault();
@@ -488,7 +492,7 @@ export default function AdminPage() {
     }
   }
 
-  if (!authed) {
+  if (!effectiveAuthed) {
     return (
       <div className="mx-auto max-w-sm px-4 py-20 space-y-6">
         <div className="flex justify-center">
