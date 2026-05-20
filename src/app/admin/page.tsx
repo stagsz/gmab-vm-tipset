@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shield, Users, Award, Key, Save, Check, Lock, RefreshCw } from 'lucide-react';
+import { Shield, Users, Award, Key, Save, Check, Lock, RefreshCw, LogOut } from 'lucide-react';
 import { useLocale } from '@/context/LocaleContext';
 import { supabase } from '@/lib/supabase';
 import { bonusQuestions, BonusQuestionKey } from '@/data/matches';
@@ -532,6 +532,13 @@ export default function AdminPage() {
       <div className="flex items-center gap-3">
         <Shield className="h-6 w-6 text-green-500" />
         <h1 className="text-2xl font-bold text-white">{t.admin.title}</h1>
+        <button
+          onClick={() => { sessionStorage.removeItem(ADMIN_SESSION_KEY); setAuthed(false); }}
+          className="ml-auto flex items-center gap-1.5 rounded-lg border border-gray-700 px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:border-gray-500 transition-colors"
+        >
+          <LogOut className="h-3.5 w-3.5" />
+          {t.auth.logout}
+        </button>
       </div>
 
       {/* Tab bar */}

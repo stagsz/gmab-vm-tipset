@@ -51,7 +51,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   async function login(name: string, code: string): Promise<{ ok: boolean; error?: string }> {
     const upperCode = code.trim().toUpperCase();
-    const trimmedName = name.trim();
+    const normalizedName = name.trim().replace(/\s+/g, ' ');
 
     // 1. Validate invite code
     const { data: codeRow, error: codeErr } = await supabase
@@ -70,10 +70,27 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       return { ok: false, error: 'Ogiltig inbjudningskod' };
     }
 
-    // 3. Insert player
+    // 3. Returning player? Same invite_code + name (case-insensitive) → reuse oldest row, skip insert
+    const { data: existingRows } = await supabase
+      .from('players')
+      .select('id, name, paid')
+      .eq('invite_code', upperCode)
+      .ilike('name', normalizedName)
+      .order('created_at', { ascending: true })
+      .limit(1);
+
+    const existing = existingRows?.[0];
+    if (existing) {
+      localStorage.setItem(LS_PLAYER_ID, existing.id);
+      localStorage.setItem(LS_PLAYER_NAME, existing.name);
+      setPlayer({ id: existing.id, name: existing.name, paid: existing.paid ?? false });
+      return { ok: true };
+    }
+
+    // 4. New player — insert with normalized name
     const { data: newPlayer, error: insertErr } = await supabase
       .from('players')
-      .insert({ name: trimmedName, invite_code: upperCode })
+      .insert({ name: normalizedName, invite_code: upperCode })
       .select('id, name, paid')
       .single();
 
@@ -81,13 +98,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       return { ok: false, error: 'Något gick fel, försök igen' };
     }
 
-    // 4. Increment invite code uses
+    // 5. Increment invite code uses (only for genuinely new players)
     await supabase
       .from('invite_codes')
       .update({ uses: codeRow.uses + 1 })
       .eq('code', upperCode);
 
-    // 5. Store in localStorage and set state
+    // 6. Store in localStorage and set state
     localStorage.setItem(LS_PLAYER_ID, newPlayer.id);
     localStorage.setItem(LS_PLAYER_NAME, newPlayer.name);
     setPlayer({ id: newPlayer.id, name: newPlayer.name, paid: newPlayer.paid ?? false });

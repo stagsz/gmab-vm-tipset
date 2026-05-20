@@ -89,6 +89,7 @@ export default function HomePage() {
       ) : (
         <section className="mx-auto max-w-sm rounded-xl bg-gray-900 border border-gray-800 p-6 space-y-5">
           <h2 className="text-xl font-semibold text-white text-center">{t.auth.join}</h2>
+          <p className="text-xs text-gray-500 text-center -mt-1">{t.auth.returningHint}</p>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1">
               <label className="block text-sm text-gray-400">{t.auth.enterName}</label>

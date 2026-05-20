@@ -18,6 +18,7 @@ export const it = {
     invalidCode: "Codice di invito non valido",
     welcome: "Benvenuto",
     logout: "Esci",
+    returningHint: "Già iscritto? Inserisci lo stesso nome e codice per continuare.",
   },
   home: {
     welcome: "Benvenuti al GMAB Pronostici Mondiali 2026!",

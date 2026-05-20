@@ -18,6 +18,7 @@ export const sv = {
     invalidCode: "Ogiltig inbjudningskod",
     welcome: "Välkommen",
     logout: "Logga ut",
+    returningHint: "Redan med? Ange samma namn och kod för att fortsätta.",
   },
   home: {
     welcome: "Välkommen till GMAB VM-tipset 2026!",
