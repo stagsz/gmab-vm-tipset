@@ -106,4 +106,4 @@ export const bonusQuestions: BonusQuestion[] = [
 export const DEADLINE = new Date("2026-06-05T23:59:59");
 export const TOURNAMENT_START = new Date("2026-06-11");
 export const TOURNAMENT_END = new Date("2026-07-11");
-export const ENTRY_FEE_SEK = 100;
+export const ENTRY_FEE_SEK = 50;

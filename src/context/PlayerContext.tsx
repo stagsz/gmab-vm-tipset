@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 interface Player {
   id: string;
   name: string;
+  paid: boolean;
 }
 
 interface PlayerContextValue {
@@ -32,11 +33,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         // Verify the player still exists in Supabase
         const { data, error } = await supabase
           .from('players')
-          .select('id, name')
+          .select('id, name, paid')
           .eq('id', storedId)
           .single();
         if (!error && data) {
-          setPlayer({ id: data.id, name: data.name });
+          setPlayer({ id: data.id, name: data.name, paid: data.paid ?? false });
         } else {
           // Player no longer valid — clear storage
           localStorage.removeItem(LS_PLAYER_ID);
@@ -73,7 +74,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const { data: newPlayer, error: insertErr } = await supabase
       .from('players')
       .insert({ name: trimmedName, invite_code: upperCode })
-      .select('id, name')
+      .select('id, name, paid')
       .single();
 
     if (insertErr || !newPlayer) {
@@ -89,7 +90,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     // 5. Store in localStorage and set state
     localStorage.setItem(LS_PLAYER_ID, newPlayer.id);
     localStorage.setItem(LS_PLAYER_NAME, newPlayer.name);
-    setPlayer({ id: newPlayer.id, name: newPlayer.name });
+    setPlayer({ id: newPlayer.id, name: newPlayer.name, paid: newPlayer.paid ?? false });
 
     return { ok: true };
   }

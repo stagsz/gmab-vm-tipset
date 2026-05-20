@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronDown, ChevronRight, Save, Lock } from 'lucide-react';
+import { ChevronDown, ChevronRight, Save, Lock, CreditCard } from 'lucide-react';
 import { useLocale } from '@/context/LocaleContext';
 import { usePlayer } from '@/context/PlayerContext';
 import { groups, bonusQuestions, DEADLINE, BonusQuestionKey } from '@/data/matches';
@@ -230,6 +230,14 @@ export default function TipsetPage() {
           </span>
         )}
       </div>
+
+      {/* Payment reminder */}
+      {!player.paid && (
+        <div className="flex items-center gap-2.5 rounded-lg bg-amber-900/30 border border-amber-700/50 px-4 py-3 text-sm text-amber-300">
+          <CreditCard className="h-4 w-4 shrink-0" />
+          {t.admin.paymentReminder}
+        </div>
+      )}
 
       {/* Groups */}
       {groups.map((group) => {

@@ -27,6 +27,7 @@ interface PlayerRow {
   name: string;
   invite_code: string;
   created_at: string;
+  paid: boolean;
 }
 
 interface InviteCode {
@@ -184,7 +185,7 @@ function PlayersTab({ t }: { t: ReturnType<typeof useLocale>['t'] }) {
   useEffect(() => {
     supabase
       .from('players')
-      .select('id, name, invite_code, created_at')
+      .select('id, name, invite_code, created_at, paid')
       .order('created_at', { ascending: true })
       .then(({ data }) => {
         if (data) setPlayers(data as PlayerRow[]);
@@ -192,29 +193,51 @@ function PlayersTab({ t }: { t: ReturnType<typeof useLocale>['t'] }) {
       });
   }, []);
 
+  async function togglePaid(id: string, current: boolean) {
+    await supabase.from('players').update({ paid: !current }).eq('id', id);
+    setPlayers((prev) => prev.map((p) => p.id === id ? { ...p, paid: !current } : p));
+  }
+
   if (loading) return <p className="text-gray-400 text-sm">{t.common.loading}</p>;
+
+  const paidCount = players.filter((p) => p.paid).length;
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-400">
-        {t.admin.totalPlayers}: <span className="font-semibold text-white">{players.length}</span>
-      </p>
+      <div className="flex items-center gap-4 text-sm text-gray-400">
+        <span>{t.admin.totalPlayers}: <span className="font-semibold text-white">{players.length}</span></span>
+        <span>{t.admin.paid}: <span className="font-semibold text-green-400">{paidCount}</span></span>
+        <span>{t.admin.unpaid}: <span className="font-semibold text-amber-400">{players.length - paidCount}</span></span>
+      </div>
       {players.length === 0 ? (
         <p className="text-gray-500 text-sm">{t.admin.noPlayers}</p>
       ) : (
         <div className="rounded-xl border border-gray-800 overflow-hidden">
-          <div className="grid grid-cols-[1fr_8rem_8rem] bg-gray-900 border-b border-gray-800 px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+          <div className="grid grid-cols-[1fr_5rem_9rem_6rem] bg-gray-900 border-b border-gray-800 px-4 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wide">
             <div>Namn</div>
             <div>Kod</div>
+            <div>Betalning</div>
             <div>Datum</div>
           </div>
           {players.map((p) => (
             <div
               key={p.id}
-              className="grid grid-cols-[1fr_8rem_8rem] px-4 py-3 border-b border-gray-800 last:border-b-0 bg-gray-950 text-sm"
+              className="grid grid-cols-[1fr_5rem_9rem_6rem] px-4 py-3 border-b border-gray-800 last:border-b-0 bg-gray-950 text-sm items-center"
             >
               <div className="text-white font-medium">{p.name}</div>
-              <div className="text-gray-400">{p.invite_code}</div>
+              <div className="text-gray-400 text-xs">{p.invite_code}</div>
+              <div>
+                <button
+                  onClick={() => togglePaid(p.id, p.paid)}
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors ${
+                    p.paid
+                      ? 'bg-green-900/50 text-green-400 hover:bg-red-900/50 hover:text-red-400'
+                      : 'bg-amber-900/40 text-amber-400 hover:bg-green-900/50 hover:text-green-400'
+                  }`}
+                >
+                  {p.paid ? t.admin.paid : t.admin.unpaid}
+                </button>
+              </div>
               <div className="text-gray-500 text-xs">
                 {new Date(p.created_at).toLocaleDateString('sv-SE')}
               </div>
