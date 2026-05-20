@@ -1,38 +1,56 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocale } from '@/context/LocaleContext';
-import { matches, groups } from '@/data/matches';
+import { groups } from '@/data/matches';
+import { supabase } from '@/lib/supabase';
 
-type ResultsMap = Record<number, { home: number; away: number }>;
+interface SupabaseMatch {
+  id: number;
+  match_nr: number;
+  match_date: string;
+  group_letter: string;
+  home_team: string;
+  away_team: string;
+  home_goals: number | null;
+  away_goals: number | null;
+  status: string;
+}
 
 type FilterTab = 'all' | (typeof groups)[number];
 
 export default function MatchesPage() {
   const { t } = useLocale();
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
+  const [matchList, setMatchList] = useState<SupabaseMatch[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Read admin results from localStorage (client-side only)
-  let results: ResultsMap = {};
-  if (typeof window !== 'undefined') {
-    const raw = localStorage.getItem('gmab_admin_results');
-    if (raw) {
-      try {
-        results = JSON.parse(raw);
-      } catch {
-        // ignore
+  useEffect(() => {
+    async function fetchMatches() {
+      setLoading(true);
+      const { data } = await supabase
+        .from('matches')
+        .select('*')
+        .order('match_date', { ascending: true })
+        .order('match_nr', { ascending: true });
+      if (data) {
+        setMatchList(data as SupabaseMatch[]);
       }
+      setLoading(false);
     }
-  }
+    fetchMatches();
+  }, []);
 
   const filtered =
-    activeTab === 'all' ? matches : matches.filter((m) => m.group === activeTab);
+    activeTab === 'all'
+      ? matchList
+      : matchList.filter((m) => m.group_letter === activeTab);
 
   // Group by date
-  const byDate: Record<string, typeof matches> = {};
+  const byDate: Record<string, SupabaseMatch[]> = {};
   for (const m of filtered) {
-    if (!byDate[m.date]) byDate[m.date] = [];
-    byDate[m.date].push(m);
+    if (!byDate[m.match_date]) byDate[m.match_date] = [];
+    byDate[m.match_date].push(m);
   }
   const sortedDates = Object.keys(byDate).sort();
 
@@ -59,58 +77,63 @@ export default function MatchesPage() {
         ))}
       </div>
 
-      {/* Matches by date */}
-      <div className="space-y-6">
-        {sortedDates.map((date) => (
-          <div key={date} className="space-y-2">
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">
-              {new Date(date).toLocaleDateString('sv-SE', {
-                weekday: 'short',
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })}
-            </h2>
-            <div className="rounded-xl border border-gray-800 overflow-hidden divide-y divide-gray-800">
-              {byDate[date].map((match) => {
-                const res = results[match.match_nr];
-                return (
-                  <div
-                    key={match.match_nr}
-                    className="flex items-center gap-3 px-4 py-3 bg-gray-950 hover:bg-gray-900 transition-colors text-sm"
-                  >
-                    {/* Group badge */}
-                    <span className="shrink-0 w-14 text-center rounded-md bg-gray-800 px-2 py-0.5 text-xs font-semibold text-gray-300">
-                      {t.predictions.group} {match.group}
-                    </span>
+      {loading ? (
+        <div className="text-center text-gray-400 py-12">{t.common.loading}</div>
+      ) : (
+        /* Matches by date */
+        <div className="space-y-6">
+          {sortedDates.map((date) => (
+            <div key={date} className="space-y-2">
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">
+                {new Date(date).toLocaleDateString('sv-SE', {
+                  weekday: 'short',
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </h2>
+              <div className="rounded-xl border border-gray-800 overflow-hidden divide-y divide-gray-800">
+                {byDate[date].map((match) => {
+                  const hasResult = match.status === 'finished' &&
+                    match.home_goals !== null && match.away_goals !== null;
+                  return (
+                    <div
+                      key={match.match_nr}
+                      className="flex items-center gap-3 px-4 py-3 bg-gray-950 hover:bg-gray-900 transition-colors text-sm"
+                    >
+                      {/* Group badge */}
+                      <span className="shrink-0 w-14 text-center rounded-md bg-gray-800 px-2 py-0.5 text-xs font-semibold text-gray-300">
+                        {t.predictions.group} {match.group_letter}
+                      </span>
 
-                    {/* Home team */}
-                    <span className="flex-1 text-right text-gray-200 truncate">
-                      {match.home_team}
-                    </span>
+                      {/* Home team */}
+                      <span className="flex-1 text-right text-gray-200 truncate">
+                        {match.home_team}
+                      </span>
 
-                    {/* Score or placeholder */}
-                    <span className="shrink-0 w-16 text-center font-mono font-bold">
-                      {res ? (
-                        <span className="text-white">
-                          {res.home} – {res.away}
-                        </span>
-                      ) : (
-                        <span className="text-gray-600">{t.matches.noResult}</span>
-                      )}
-                    </span>
+                      {/* Score or placeholder */}
+                      <span className="shrink-0 w-16 text-center font-mono font-bold">
+                        {hasResult ? (
+                          <span className="text-white">
+                            {match.home_goals} – {match.away_goals}
+                          </span>
+                        ) : (
+                          <span className="text-gray-600">{t.matches.noResult}</span>
+                        )}
+                      </span>
 
-                    {/* Away team */}
-                    <span className="flex-1 text-left text-gray-200 truncate">
-                      {match.away_team}
-                    </span>
-                  </div>
-                );
-              })}
+                      {/* Away team */}
+                      <span className="flex-1 text-left text-gray-200 truncate">
+                        {match.away_team}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -12,22 +12,31 @@ import {
   LogOut,
   Menu,
   X,
+  Shield,
 } from 'lucide-react';
 import { useLocale } from '@/context/LocaleContext';
 import { usePlayer } from '@/context/PlayerContext';
 import { locales, localeNames, Locale } from '@/i18n/index';
+
+const ADMIN_SESSION_KEY = 'gmab_admin';
 
 export default function Navbar() {
   const { t, locale, setLocale } = useLocale();
   const { player, logout } = usePlayer();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    setIsAdmin(sessionStorage.getItem(ADMIN_SESSION_KEY) === 'true');
+  }, [pathname]);
 
   const navLinks = [
     { href: '/', label: t.nav.home, icon: Home },
     { href: '/tipset', label: t.nav.predictions, icon: ListOrdered },
     { href: '/leaderboard', label: t.nav.leaderboard, icon: Trophy },
     { href: '/matches', label: t.nav.matches, icon: Calendar },
+    ...(isAdmin ? [{ href: '/admin', label: t.nav.admin, icon: Shield }] : []),
   ];
 
   function isActive(href: string) {

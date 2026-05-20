@@ -5,14 +5,24 @@ import Link from 'next/link';
 import { ChevronDown, ChevronRight, Save, Lock } from 'lucide-react';
 import { useLocale } from '@/context/LocaleContext';
 import { usePlayer } from '@/context/PlayerContext';
-import { matches, groups, bonusQuestions, DEADLINE, BonusQuestionKey } from '@/data/matches';
+import { groups, bonusQuestions, DEADLINE, BonusQuestionKey } from '@/data/matches';
+import { supabase } from '@/lib/supabase';
+
+interface SupabaseMatch {
+  id: number;
+  match_nr: number;
+  match_date: string;
+  group_letter: string;
+  home_team: string;
+  away_team: string;
+  home_goals: number | null;
+  away_goals: number | null;
+  status: string;
+}
 
 type ScorePrediction = { home: string; away: string };
 type Predictions = Record<number, ScorePrediction>;
 type BonusAnswers = Partial<Record<BonusQuestionKey, string>>;
-
-const LS_KEY_PREFIX = 'gmab_predictions_';
-const LS_BONUS_PREFIX = 'gmab_bonus_';
 
 function calcSign(home: string, away: string): string {
   const h = parseInt(home, 10);
@@ -26,31 +36,85 @@ function calcSign(home: string, away: string): string {
 export default function TipsetPage() {
   const { t } = useLocale();
   const { player } = usePlayer();
+
+  const [matchList, setMatchList] = useState<SupabaseMatch[]>([]);
   const [predictions, setPredictions] = useState<Predictions>({});
   const [bonus, setBonus] = useState<BonusAnswers>({});
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(groups.map((g) => [g, true]))
   );
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   const isLocked = new Date() > DEADLINE;
-  const storageKey = player ? `${LS_KEY_PREFIX}${player.name}` : null;
-  const bonusKey = player ? `${LS_BONUS_PREFIX}${player.name}` : null;
 
+  // Fetch matches + existing predictions
   useEffect(() => {
-    if (!storageKey || !bonusKey) return;
-    try {
-      const raw = localStorage.getItem(storageKey);
-      if (raw) setPredictions(JSON.parse(raw));
-      const rawB = localStorage.getItem(bonusKey);
-      if (rawB) setBonus(JSON.parse(rawB));
-    } catch {
-      // ignore corrupt data
+    async function fetchData() {
+      setFetching(true);
+
+      // Fetch all matches
+      const { data: matchData } = await supabase
+        .from('matches')
+        .select('*')
+        .order('match_date', { ascending: true })
+        .order('match_nr', { ascending: true });
+
+      if (matchData) {
+        setMatchList(matchData as SupabaseMatch[]);
+      }
+
+      // Fetch existing predictions for this player
+      if (player) {
+        const { data: predData } = await supabase
+          .from('predictions')
+          .select('match_id, home_goals, away_goals')
+          .eq('player_id', player.id);
+
+        if (predData) {
+          // Map match_id -> prediction using match_nr from matchData
+          const matchById: Record<number, number> = {};
+          if (matchData) {
+            for (const m of matchData as SupabaseMatch[]) {
+              matchById[m.id] = m.match_nr;
+            }
+          }
+          const predsMap: Predictions = {};
+          for (const p of predData) {
+            const matchNr = matchById[p.match_id];
+            if (matchNr !== undefined) {
+              predsMap[matchNr] = {
+                home: p.home_goals?.toString() ?? '',
+                away: p.away_goals?.toString() ?? '',
+              };
+            }
+          }
+          setPredictions(predsMap);
+        }
+
+        // Fetch bonus answers
+        const { data: bonusData } = await supabase
+          .from('bonus_answers')
+          .select('question_key, answer')
+          .eq('player_id', player.id);
+
+        if (bonusData) {
+          const bonusMap: BonusAnswers = {};
+          for (const b of bonusData) {
+            bonusMap[b.question_key as BonusQuestionKey] = b.answer;
+          }
+          setBonus(bonusMap);
+        }
+      }
+
+      setFetching(false);
     }
-  }, [storageKey, bonusKey]);
+
+    fetchData();
+  }, [player]);
 
   function setScore(matchNr: number, side: 'home' | 'away', val: string) {
-    // Allow only empty or non-negative integers
     if (val !== '' && !/^\d{0,2}$/.test(val)) return;
     setPredictions((prev) => ({
       ...prev,
@@ -59,10 +123,49 @@ export default function TipsetPage() {
     setSaved(false);
   }
 
-  function handleSave() {
-    if (!storageKey || !bonusKey) return;
-    localStorage.setItem(storageKey, JSON.stringify(predictions));
-    localStorage.setItem(bonusKey, JSON.stringify(bonus));
+  async function handleSave() {
+    if (!player) return;
+    setSaving(true);
+
+    // Build match_id lookup from match_nr
+    const matchByNr: Record<number, number> = {};
+    for (const m of matchList) {
+      matchByNr[m.match_nr] = m.id;
+    }
+
+    // Upsert predictions
+    const predRows = Object.entries(predictions)
+      .filter(([, pred]) => pred.home !== '' && pred.away !== '')
+      .map(([matchNrStr, pred]) => ({
+        player_id: player.id,
+        match_id: matchByNr[parseInt(matchNrStr, 10)],
+        home_goals: parseInt(pred.home, 10),
+        away_goals: parseInt(pred.away, 10),
+      }))
+      .filter((r) => r.match_id !== undefined);
+
+    if (predRows.length > 0) {
+      await supabase
+        .from('predictions')
+        .upsert(predRows, { onConflict: 'player_id,match_id' });
+    }
+
+    // Upsert bonus answers
+    const bonusRows = (Object.entries(bonus) as [BonusQuestionKey, string][])
+      .filter(([, answer]) => answer.trim() !== '')
+      .map(([question_key, answer]) => ({
+        player_id: player.id,
+        question_key,
+        answer: answer.trim(),
+      }));
+
+    if (bonusRows.length > 0) {
+      await supabase
+        .from('bonus_answers')
+        .upsert(bonusRows, { onConflict: 'player_id,question_key' });
+    }
+
+    setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   }
@@ -101,6 +204,21 @@ export default function TipsetPage() {
     );
   }
 
+  if (fetching) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-20 text-center">
+        <p className="text-gray-400">{t.common.loading}</p>
+      </div>
+    );
+  }
+
+  // Group matches by group_letter
+  const matchesByGroup: Record<string, SupabaseMatch[]> = {};
+  for (const m of matchList) {
+    if (!matchesByGroup[m.group_letter]) matchesByGroup[m.group_letter] = [];
+    matchesByGroup[m.group_letter].push(m);
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -115,7 +233,7 @@ export default function TipsetPage() {
 
       {/* Groups */}
       {groups.map((group) => {
-        const groupMatches = matches.filter((m) => m.group === group);
+        const groupMatches = matchesByGroup[group] ?? [];
         const open = openGroups[group];
 
         return (
@@ -147,7 +265,7 @@ export default function TipsetPage() {
                     >
                       {/* Date */}
                       <span className="text-gray-500 text-xs w-20 shrink-0">
-                        {new Date(match.date).toLocaleDateString('sv-SE', {
+                        {new Date(match.match_date).toLocaleDateString('sv-SE', {
                           month: 'short',
                           day: 'numeric',
                         })}
@@ -244,10 +362,11 @@ export default function TipsetPage() {
         <div className="flex justify-end pb-8">
           <button
             onClick={handleSave}
-            className="flex items-center gap-2 rounded-lg bg-green-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-green-500 transition-colors"
+            disabled={saving}
+            className="flex items-center gap-2 rounded-lg bg-green-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-green-500 transition-colors disabled:opacity-60"
           >
             <Save className="h-4 w-4" />
-            {saved ? t.predictions.saved : t.predictions.save}
+            {saved ? t.predictions.saved : saving ? t.common.loading : t.predictions.save}
           </button>
         </div>
       )}

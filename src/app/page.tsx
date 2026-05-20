@@ -22,13 +22,17 @@ export default function HomePage() {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
 
-  function handleLogin(e: React.FormEvent) {
+  const [loggingIn, setLoggingIn] = useState(false);
+
+  async function handleLogin(e: React.SyntheticEvent) {
     e.preventDefault();
     setError('');
     if (!name.trim() || !code.trim()) return;
-    const ok = login(name, code);
-    if (!ok) {
-      setError(t.auth.invalidCode);
+    setLoggingIn(true);
+    const result = await login(name, code);
+    setLoggingIn(false);
+    if (!result.ok) {
+      setError(result.error ?? t.auth.invalidCode);
     }
   }
 
@@ -111,9 +115,10 @@ export default function HomePage() {
             {error && <p className="text-sm text-red-400">{error}</p>}
             <button
               type="submit"
-              className="w-full rounded-lg bg-green-600 py-2.5 text-sm font-semibold text-white hover:bg-green-500 transition-colors"
+              disabled={loggingIn}
+              className="w-full rounded-lg bg-green-600 py-2.5 text-sm font-semibold text-white hover:bg-green-500 transition-colors disabled:opacity-60"
             >
-              {t.auth.join}
+              {loggingIn ? t.common.loading : t.auth.join}
             </button>
           </form>
         </section>
