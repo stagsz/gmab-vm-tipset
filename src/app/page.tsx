@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/context/LocaleContext';
 import { usePlayer } from '@/context/PlayerContext';
-import { ENTRY_FEE_SEK } from '@/data/matches';
+import { ENTRY_FEE_SEK, INVITE_CODE } from '@/data/matches';
 
 export default function HomePage() {
   const { t } = useLocale();
@@ -100,6 +100,7 @@ export default function HomePage() {
         </h1>
         <p className="text-lg text-gray-400 max-w-2xl mx-auto">{t.home.description}</p>
         <p className="text-sm font-semibold text-green-400">{t.app.deadline}</p>
+        <p className="text-sm font-semibold text-green-400">{t.home.inviteCodeLabel}: {INVITE_CODE}</p>
       </section>
 
       {/* Login or CTA */}

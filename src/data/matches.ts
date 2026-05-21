@@ -106,4 +106,5 @@ export const bonusQuestions: BonusQuestion[] = [
 export const TOURNAMENT_START = new Date("2026-06-11T00:00:00");
 export const DEADLINE = TOURNAMENT_START;
 export const TOURNAMENT_END = new Date("2026-07-11");
+export const INVITE_CODE = "GMAB2026";
 export const ENTRY_FEE_SEK = 50;

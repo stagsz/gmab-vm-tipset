@@ -47,6 +47,7 @@ export const it = {
     correctSignPts: "1 punto",
     maxPerMatch: "Max per partita: 4 punti",
     bonusTitle: "Domande bonus",
+    inviteCodeLabel: "Codice di invito",
     bonusNote: "I punti vengono assegnati quando il campione del mondo è incoronato",
   },
   predictions: {

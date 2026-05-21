@@ -47,6 +47,7 @@ export const sv = {
     correctSignPts: "1 poäng",
     maxPerMatch: "Max per match: 4 poäng",
     bonusTitle: "Bonusfrågor",
+    inviteCodeLabel: "Inbjudningskod",
     bonusNote: "Poäng delas ut när VM-mästaren är korad",
   },
   predictions: {
