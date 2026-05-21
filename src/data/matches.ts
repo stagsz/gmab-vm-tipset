@@ -103,8 +103,8 @@ export const bonusQuestions: BonusQuestion[] = [
   { key: "most_conceded_group", points: 10 },
 ];
 
-export const TOURNAMENT_START = new Date("2026-06-11T00:00:00");
-export const DEADLINE = TOURNAMENT_START;
+export const TOURNAMENT_START = new Date("2026-06-11T22:00:00Z"); // 00:00 Swedish CEST / 21:00 Mexico CDT
+export const DEADLINE = TOURNAMENT_START; // Tips must be submitted before this
 export const TOURNAMENT_END = new Date("2026-07-11");
 export const INVITE_CODE = "GMAB2026";
 export const ENTRY_FEE_SEK = 50;

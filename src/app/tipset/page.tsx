@@ -47,7 +47,12 @@ export default function TipsetPage() {
   const [saving, setSaving] = useState(false);
   const [fetching, setFetching] = useState(true);
 
-  const isLocked = new Date() > DEADLINE;
+  const isGloballyLocked = new Date() > DEADLINE;
+
+  function isMatchLocked(matchDate: string): boolean {
+    const kickOff = new Date(matchDate);
+    return Date.now() >= kickOff.getTime() - 5 * 60 * 1000; // lock 5 min before kick-off
+  }
 
   // Fetch matches + existing predictions
   useEffect(() => {
@@ -133,9 +138,13 @@ export default function TipsetPage() {
       matchByNr[m.match_nr] = m.id;
     }
 
-    // Upsert predictions
+    // Upsert predictions — skip any match already locked (5 min before kick-off)
+    const matchDateByNr: Record<number, string> = {};
+    for (const m of matchList) matchDateByNr[m.match_nr] = m.match_date;
+
     const predRows = Object.entries(predictions)
       .filter(([, pred]) => pred.home !== '' && pred.away !== '')
+      .filter(([matchNrStr]) => !isMatchLocked(matchDateByNr[parseInt(matchNrStr, 10)]))
       .map(([matchNrStr, pred]) => ({
         player_id: player.id,
         match_id: matchByNr[parseInt(matchNrStr, 10)],
@@ -223,7 +232,7 @@ export default function TipsetPage() {
     <div className="mx-auto max-w-4xl px-4 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">{t.predictions.title}</h1>
-        {isLocked && (
+        {isGloballyLocked && (
           <span className="flex items-center gap-1.5 rounded-full bg-red-900/40 border border-red-800 px-3 py-1 text-xs text-red-400">
             <Lock className="h-3.5 w-3.5" />
             {t.predictions.locked}
@@ -292,7 +301,7 @@ export default function TipsetPage() {
                           max={99}
                           value={pred.home}
                           onChange={(e) => setScore(match.match_nr, 'home', e.target.value)}
-                          disabled={isLocked}
+                          disabled={isGloballyLocked || isMatchLocked(match.match_date)}
                           className="w-10 rounded border border-gray-700 bg-gray-800 text-center text-white text-sm py-1 disabled:opacity-50 focus:border-green-500 focus:outline-none"
                           placeholder="-"
                         />
@@ -303,7 +312,7 @@ export default function TipsetPage() {
                           max={99}
                           value={pred.away}
                           onChange={(e) => setScore(match.match_nr, 'away', e.target.value)}
-                          disabled={isLocked}
+                          disabled={isGloballyLocked || isMatchLocked(match.match_date)}
                           className="w-10 rounded border border-gray-700 bg-gray-800 text-center text-white text-sm py-1 disabled:opacity-50 focus:border-green-500 focus:outline-none"
                           placeholder="-"
                         />
@@ -314,20 +323,24 @@ export default function TipsetPage() {
                         {match.away_team}
                       </span>
 
-                      {/* 1X2 sign */}
-                      <span
-                        className={`w-7 text-center text-xs font-bold shrink-0 ${
-                          sign === '1'
-                            ? 'text-green-400'
-                            : sign === 'X'
-                            ? 'text-yellow-400'
-                            : sign === '2'
-                            ? 'text-blue-400'
-                            : 'text-gray-600'
-                        }`}
-                      >
-                        {sign || '-'}
-                      </span>
+                      {/* 1X2 sign or lock icon */}
+                      {isMatchLocked(match.match_date) ? (
+                        <Lock className="h-3.5 w-3.5 text-gray-600 shrink-0" />
+                      ) : (
+                        <span
+                          className={`w-7 text-center text-xs font-bold shrink-0 ${
+                            sign === '1'
+                              ? 'text-green-400'
+                              : sign === 'X'
+                              ? 'text-yellow-400'
+                              : sign === '2'
+                              ? 'text-blue-400'
+                              : 'text-gray-600'
+                          }`}
+                        >
+                          {sign || '-'}
+                        </span>
+                      )}
                     </div>
                   );
                 })}
@@ -356,7 +369,7 @@ export default function TipsetPage() {
                   setBonus((prev) => ({ ...prev, [bq.key]: e.target.value }));
                   setSaved(false);
                 }}
-                disabled={isLocked}
+                disabled={isGloballyLocked}
                 placeholder="..."
                 className="w-full rounded border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-600 disabled:opacity-50 focus:border-green-500 focus:outline-none"
               />
@@ -366,7 +379,7 @@ export default function TipsetPage() {
       </div>
 
       {/* Save button */}
-      {!isLocked && (
+      {!isGloballyLocked && (
         <div className="flex justify-end pb-8">
           <button
             onClick={handleSave}
