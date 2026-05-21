@@ -15,6 +15,7 @@ interface PlayerContextValue {
   loading: boolean;
   login: (name: string, code: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
+  changePassword: (newPassword: string) => Promise<{ ok: boolean; error?: string }>;
 }
 
 const PlayerContext = createContext<PlayerContextValue | null>(null);
@@ -51,10 +52,50 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function login(name: string, code: string): Promise<{ ok: boolean; error?: string }> {
-    const upperCode = code.trim().toUpperCase();
     const normalizedName = name.trim().replace(/\s+/g, ' ');
+    const trimmedCode = code.trim();
+    const upperCode = trimmedCode.toUpperCase();
 
-    // 1. Validate invite code
+    // 1. Check if a player with this name already exists (returning player)
+    const { data: existingRows } = await supabase
+      .from('players')
+      .select('id, name, paid, is_admin, invite_code, player_password')
+      .ilike('name', normalizedName)
+      .order('created_at', { ascending: true })
+      .limit(1);
+
+    const existing = existingRows?.[0];
+
+    if (existing) {
+      // Returning player — authenticate against personal password or invite code
+      if (existing.player_password) {
+        // Player has set a personal password — validate against it
+        if (trimmedCode !== existing.player_password) {
+          return { ok: false, error: 'Fel lösenord' };
+        }
+      } else {
+        // No personal password — validate against their stored invite code
+        if (existing.invite_code !== upperCode) {
+          return { ok: false, error: 'Ogiltig inbjudningskod' };
+        }
+        // Also confirm the invite code is still active
+        const { data: codeRow } = await supabase
+          .from('invite_codes')
+          .select('is_active')
+          .eq('code', upperCode)
+          .single();
+        if (!codeRow?.is_active) {
+          return { ok: false, error: 'Ogiltig inbjudningskod' };
+        }
+      }
+
+      localStorage.setItem(LS_PLAYER_ID, existing.id);
+      localStorage.setItem(LS_PLAYER_NAME, existing.name);
+      setPlayer({ id: existing.id, name: existing.name, paid: existing.paid ?? false, is_admin: existing.is_admin ?? false });
+      return { ok: true };
+    }
+
+    // 2. New player — validate invite code
     const { data: codeRow, error: codeErr } = await supabase
       .from('invite_codes')
       .select('code, is_active, max_uses, uses')
@@ -66,29 +107,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       return { ok: false, error: 'Ogiltig inbjudningskod' };
     }
 
-    // 2. Check max uses
     if (codeRow.max_uses !== null && codeRow.uses >= codeRow.max_uses) {
       return { ok: false, error: 'Ogiltig inbjudningskod' };
     }
 
-    // 3. Returning player? Same invite_code + name (case-insensitive) → reuse oldest row, skip insert
-    const { data: existingRows } = await supabase
-      .from('players')
-      .select('id, name, paid, is_admin')
-      .eq('invite_code', upperCode)
-      .ilike('name', normalizedName)
-      .order('created_at', { ascending: true })
-      .limit(1);
-
-    const existing = existingRows?.[0];
-    if (existing) {
-      localStorage.setItem(LS_PLAYER_ID, existing.id);
-      localStorage.setItem(LS_PLAYER_NAME, existing.name);
-      setPlayer({ id: existing.id, name: existing.name, paid: existing.paid ?? false, is_admin: existing.is_admin ?? false });
-      return { ok: true };
-    }
-
-    // 4. New player — insert with normalized name
+    // 3. Insert new player
     const { data: newPlayer, error: insertErr } = await supabase
       .from('players')
       .insert({ name: normalizedName, invite_code: upperCode })
@@ -99,17 +122,27 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       return { ok: false, error: 'Något gick fel, försök igen' };
     }
 
-    // 5. Increment invite code uses (only for genuinely new players)
+    // 4. Increment invite code uses
     await supabase
       .from('invite_codes')
       .update({ uses: codeRow.uses + 1 })
       .eq('code', upperCode);
 
-    // 6. Store in localStorage and set state
     localStorage.setItem(LS_PLAYER_ID, newPlayer.id);
     localStorage.setItem(LS_PLAYER_NAME, newPlayer.name);
     setPlayer({ id: newPlayer.id, name: newPlayer.name, paid: newPlayer.paid ?? false, is_admin: newPlayer.is_admin ?? false });
 
+    return { ok: true };
+  }
+
+  async function changePassword(newPassword: string): Promise<{ ok: boolean; error?: string }> {
+    if (!player) return { ok: false, error: 'Inte inloggad' };
+    const passwordToSet = newPassword.trim() || null;
+    const { error } = await supabase
+      .from('players')
+      .update({ player_password: passwordToSet })
+      .eq('id', player.id);
+    if (error) return { ok: false, error: 'Något gick fel' };
     return { ok: true };
   }
 
@@ -120,7 +153,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <PlayerContext.Provider value={{ player, loading, login, logout }}>
+    <PlayerContext.Provider value={{ player, loading, login, logout, changePassword }}>
       {children}
     </PlayerContext.Provider>
   );
