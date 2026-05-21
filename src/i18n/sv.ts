@@ -2,7 +2,7 @@ export const sv = {
   app: {
     title: "GMAB VM-tipset 2026",
     subtitle: "FIFA World Cup 2026 - Tipstävling",
-    deadline: "Deadline: 5 juni 2026",
+    deadline: "Deadline: 11 juni 2026",
   },
   nav: {
     home: "Hem",
