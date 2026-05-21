@@ -199,7 +199,7 @@ export default function HomePage() {
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                placeholder="GMAB2026"
+                placeholder={t.auth.enterCode}
                 required
                 className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-white placeholder-gray-500 focus:border-green-500 focus:outline-none text-sm uppercase"
               />

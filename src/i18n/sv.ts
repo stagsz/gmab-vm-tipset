@@ -12,7 +12,7 @@ export const sv = {
     admin: "Admin",
   },
   auth: {
-    enterCode: "Ange inbjudningskod",
+    enterCode: "Inbjudningskod eller lösenord",
     enterName: "Ditt namn",
     join: "Gå med",
     invalidCode: "Ogiltig inbjudningskod",

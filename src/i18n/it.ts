@@ -12,7 +12,7 @@ export const it = {
     admin: "Admin",
   },
   auth: {
-    enterCode: "Inserisci il codice di invito",
+    enterCode: "Codice di invito o password",
     enterName: "Il tuo nome",
     join: "Partecipa",
     invalidCode: "Codice di invito non valido",
