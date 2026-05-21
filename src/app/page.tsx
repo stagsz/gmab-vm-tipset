@@ -201,7 +201,7 @@ export default function HomePage() {
                 onChange={(e) => setCode(e.target.value)}
                 placeholder={t.auth.enterCode}
                 required
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-white placeholder-gray-500 focus:border-green-500 focus:outline-none text-sm uppercase"
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-white placeholder-gray-500 focus:border-green-500 focus:outline-none text-sm"
               />
             </div>
             {error && <p className="text-sm text-red-400">{error}</p>}
