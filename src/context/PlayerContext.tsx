@@ -138,11 +138,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   async function changePassword(newPassword: string): Promise<{ ok: boolean; error?: string }> {
     if (!player) return { ok: false, error: 'Inte inloggad' };
     const passwordToSet = newPassword.trim() || null;
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('players')
       .update({ player_password: passwordToSet })
-      .eq('id', player.id);
-    if (error) return { ok: false, error: 'Något gick fel' };
+      .eq('id', player.id)
+      .select('id')
+      .single();
+    if (error || !data) return { ok: false, error: 'Något gick fel – kontrollera anslutningen' };
     return { ok: true };
   }
 
