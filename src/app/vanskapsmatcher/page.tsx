@@ -49,7 +49,8 @@ function calcPoints(predHome: number, predAway: number, resultHome: number, resu
 }
 
 export default function VanskapsmatcherPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const bcp47 = locale === 'it' ? 'it-IT' : 'sv-SE';
   const { player } = usePlayer();
 
   const [matches, setMatches] = useState<FriendlyMatch[]>([]);
@@ -126,13 +127,15 @@ export default function VanskapsmatcherPage() {
       })
       .filter((r): r is NonNullable<typeof r> => r !== null);
 
-    if (rows.length > 0) {
-      const { error } = await supabase.from('friendly_predictions').upsert(rows, { onConflict: 'player_id,match_id' });
-      if (error) {
-        setSaveError(t.common.error);
-        setSaving(false);
-        return;
-      }
+    if (rows.length === 0) {
+      setSaving(false);
+      return;
+    }
+    const { error } = await supabase.from('friendly_predictions').upsert(rows, { onConflict: 'player_id,match_id' });
+    if (error) {
+      setSaveError(t.common.error);
+      setSaving(false);
+      return;
     }
     setSaveError(null);
     setSaving(false);
@@ -210,12 +213,12 @@ export default function VanskapsmatcherPage() {
         const pred = myPreds[match.id] ?? { home: '', away: '' };
         const sign = calcSign(pred.home, pred.away);
 
-        const dateStr = new Date(match.match_date).toLocaleDateString('sv-SE', {
+        const dateStr = new Date(match.match_date).toLocaleDateString(bcp47, {
           weekday: 'short',
           day: 'numeric',
           month: 'short',
         });
-        const timeStr = new Date(match.match_date).toLocaleTimeString('sv-SE', {
+        const timeStr = new Date(match.match_date).toLocaleTimeString(bcp47, {
           hour: '2-digit',
           minute: '2-digit',
         });
@@ -350,12 +353,14 @@ export default function VanskapsmatcherPage() {
                   min={0}
                   max={99}
                   value={adminScores[match.id]?.home ?? ''}
-                  onChange={e =>
+                  onChange={e => {
+                    const v = e.target.value;
+                    if (v !== '' && !/^\d{0,2}$/.test(v)) return;
                     setAdminScores(prev => ({
                       ...prev,
-                      [match.id]: { ...prev[match.id] ?? { home: '', away: '' }, home: e.target.value },
-                    }))
-                  }
+                      [match.id]: { ...prev[match.id] ?? { home: '', away: '' }, home: v },
+                    }));
+                  }}
                   className="w-10 rounded border border-gray-700 bg-gray-800 text-center text-white text-sm py-1 focus:border-green-500 focus:outline-none"
                   placeholder="-"
                 />
@@ -365,12 +370,14 @@ export default function VanskapsmatcherPage() {
                   min={0}
                   max={99}
                   value={adminScores[match.id]?.away ?? ''}
-                  onChange={e =>
+                  onChange={e => {
+                    const v = e.target.value;
+                    if (v !== '' && !/^\d{0,2}$/.test(v)) return;
                     setAdminScores(prev => ({
                       ...prev,
-                      [match.id]: { ...prev[match.id] ?? { home: '', away: '' }, away: e.target.value },
-                    }))
-                  }
+                      [match.id]: { ...prev[match.id] ?? { home: '', away: '' }, away: v },
+                    }));
+                  }}
                   className="w-10 rounded border border-gray-700 bg-gray-800 text-center text-white text-sm py-1 focus:border-green-500 focus:outline-none"
                   placeholder="-"
                 />
