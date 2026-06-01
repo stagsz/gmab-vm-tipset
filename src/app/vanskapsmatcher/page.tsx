@@ -59,6 +59,7 @@ export default function VanskapsmatcherPage() {
   const [adminScores, setAdminScores] = useState<Record<number, { home: string; away: string }>>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [adminSaved, setAdminSaved] = useState<Record<number, boolean>>({});
   const [fetching, setFetching] = useState(true);
@@ -86,18 +87,12 @@ export default function VanskapsmatcherPage() {
         setAdminScores(initialAdminScores);
       }
 
-      if (allPredsRes.data) setAllPreds(allPredsRes.data as FriendlyPrediction[]);
-      if (playersRes.data) setPlayers(playersRes.data as PlayerRow[]);
-
-      if (player && matchData) {
-        const { data: myPredData } = await supabase
-          .from('friendly_predictions')
-          .select('*')
-          .eq('player_id', player.id);
-
-        if (myPredData) {
+      const allPredsData = allPredsRes.data as FriendlyPrediction[] | null;
+      if (allPredsData) {
+        setAllPreds(allPredsData);
+        if (player) {
           const predsMap: Record<number, { home: string; away: string }> = {};
-          for (const p of myPredData as FriendlyPrediction[]) {
+          for (const p of allPredsData.filter(p => p.player_id === player.id)) {
             predsMap[p.match_id] = {
               home: p.home_goals.toString(),
               away: p.away_goals.toString(),
@@ -106,6 +101,7 @@ export default function VanskapsmatcherPage() {
           setMyPreds(predsMap);
         }
       }
+      if (playersRes.data) setPlayers(playersRes.data as PlayerRow[]);
 
       setFetching(false);
     }
@@ -131,8 +127,14 @@ export default function VanskapsmatcherPage() {
       .filter((r): r is NonNullable<typeof r> => r !== null);
 
     if (rows.length > 0) {
-      await supabase.from('friendly_predictions').upsert(rows, { onConflict: 'player_id,match_id' });
+      const { error } = await supabase.from('friendly_predictions').upsert(rows, { onConflict: 'player_id,match_id' });
+      if (error) {
+        setSaveError(t.common.error);
+        setSaving(false);
+        return;
+      }
     }
+    setSaveError(null);
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
@@ -141,13 +143,14 @@ export default function VanskapsmatcherPage() {
   async function handleAdminSaveResult(matchId: number) {
     const scores = adminScores[matchId];
     if (!scores || scores.home === '' || scores.away === '') return;
-    await supabase.from('friendly_matches')
+    const { error: updateError } = await supabase.from('friendly_matches')
       .update({
         home_goals: parseInt(scores.home, 10),
         away_goals: parseInt(scores.away, 10),
         status: 'finished',
       })
       .eq('id', matchId);
+    if (updateError) return;
     setAdminSaved(prev => ({ ...prev, [matchId]: true }));
     setTimeout(() => setAdminSaved(prev => ({ ...prev, [matchId]: false })), 2500);
     const { data } = await supabase.from('friendly_matches').select('*').order('match_date', { ascending: true });
@@ -159,7 +162,11 @@ export default function VanskapsmatcherPage() {
   async function handleSync() {
     setSyncing(true);
     try {
-      await fetch('/api/sync-friendly-scores');
+      const res = await fetch('/api/sync-friendly-scores');
+      if (!res.ok) {
+        setSyncing(false);
+        return;
+      }
       const { data } = await supabase.from('friendly_matches').select('*').order('match_date', { ascending: true });
       if (data) setMatches(data as FriendlyMatch[]);
       const { data: predsData } = await supabase.from('friendly_predictions').select('*');
@@ -341,6 +348,7 @@ export default function VanskapsmatcherPage() {
                 <input
                   type="number"
                   min={0}
+                  max={99}
                   value={adminScores[match.id]?.home ?? ''}
                   onChange={e =>
                     setAdminScores(prev => ({
@@ -355,6 +363,7 @@ export default function VanskapsmatcherPage() {
                 <input
                   type="number"
                   min={0}
+                  max={99}
                   value={adminScores[match.id]?.away ?? ''}
                   onChange={e =>
                     setAdminScores(prev => ({
@@ -378,7 +387,8 @@ export default function VanskapsmatcherPage() {
       })}
 
       {player && !fetching && matches.some(m => !isMatchLocked(m.match_date)) && (
-        <div className="flex justify-end pb-8">
+        <div className="flex flex-col items-end gap-2 pb-8">
+          {saveError && <p className="text-xs text-red-400">{saveError}</p>}
           <button
             onClick={handleSaveTips}
             disabled={saving}

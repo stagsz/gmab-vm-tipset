@@ -42,7 +42,7 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "cd \"C:\\Users\\staff\\anthropicFun\\MYkicktipp\\gmab-vm-tipset\" && npm run build 2>&1 | tail -10",
+    "buildCommand": "cd \"C:\\Users\\staff\\anthropicFun\\MYkicktipp\\gmab-vm-tipset\" && npm run build 2>&1 | tail -40",
     "testCommand": null,
     "lintCommand": "npm run lint",
     "devCommand": "npm run dev",
@@ -135,14 +135,38 @@
   "hotPaths": [
     {
       "path": "src\\app\\api\\sync-friendly-scores\\route.ts",
-      "accessCount": 9,
-      "lastAccessed": 1780324734028,
+      "accessCount": 10,
+      "lastAccessed": 1780325556797,
       "type": "file"
     },
     {
       "path": "src\\app\\tipset\\page.tsx",
+      "accessCount": 7,
+      "lastAccessed": 1780325484484,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\vanskapsmatcher\\page.tsx",
+      "accessCount": 7,
+      "lastAccessed": 1780325544413,
+      "type": "file"
+    },
+    {
+      "path": "",
+      "accessCount": 6,
+      "lastAccessed": 1780325552064,
+      "type": "directory"
+    },
+    {
+      "path": "src\\i18n\\sv.ts",
       "accessCount": 5,
-      "lastAccessed": 1780325188261,
+      "lastAccessed": 1780325556130,
+      "type": "file"
+    },
+    {
+      "path": "src\\i18n\\it.ts",
+      "accessCount": 4,
+      "lastAccessed": 1780325551285,
       "type": "file"
     },
     {
@@ -150,12 +174,6 @@
       "accessCount": 3,
       "lastAccessed": 1780323310817,
       "type": "file"
-    },
-    {
-      "path": "",
-      "accessCount": 3,
-      "lastAccessed": 1780323796468,
-      "type": "directory"
     },
     {
       "path": "src\\app\\api\\sync-scores\\route.ts",
@@ -188,6 +206,12 @@
       "type": "file"
     },
     {
+      "path": "src\\context\\PlayerContext.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1780325295573,
+      "type": "file"
+    },
+    {
       "path": "package.json",
       "accessCount": 1,
       "lastAccessed": 1779304453691,
@@ -203,12 +227,6 @@
       "path": "CLAUDE.md",
       "accessCount": 1,
       "lastAccessed": 1779304454094,
-      "type": "file"
-    },
-    {
-      "path": "src\\context\\PlayerContext.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1779304458574,
       "type": "file"
     },
     {
@@ -245,18 +263,6 @@
       "path": "src\\components\\Navbar.tsx",
       "accessCount": 1,
       "lastAccessed": 1780323800448,
-      "type": "file"
-    },
-    {
-      "path": "src\\i18n\\sv.ts",
-      "accessCount": 1,
-      "lastAccessed": 1780323920659,
-      "type": "file"
-    },
-    {
-      "path": "src\\i18n\\it.ts",
-      "accessCount": 1,
-      "lastAccessed": 1780323922447,
       "type": "file"
     }
   ],
