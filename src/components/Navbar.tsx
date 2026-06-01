@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Shield,
+  Swords,
 } from 'lucide-react';
 import { useLocale } from '@/context/LocaleContext';
 import { usePlayer } from '@/context/PlayerContext';
@@ -29,6 +30,7 @@ export default function Navbar() {
     { href: '/tipset', label: t.nav.predictions, icon: ListOrdered },
     { href: '/leaderboard', label: t.nav.leaderboard, icon: Trophy },
     { href: '/matches', label: t.nav.matches, icon: Calendar },
+    { href: '/vanskapsmatcher', label: t.nav.friendly, icon: Swords },
     ...(player?.is_admin ? [{ href: '/admin', label: t.nav.admin, icon: Shield }] : []),
   ];
 
