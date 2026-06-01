@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+interface ApiFixture {
+  teams: { home: { name: string }; away: { name: string } };
+  goals: { home: number | null; away: number | null };
+}
+
 const ALIASES: Record<string, string> = {
   'united states': 'usa',
   'us': 'usa',
@@ -35,13 +40,18 @@ export async function GET(request: Request) {
     );
   }
 
-  const res = await fetch(
-    `https://v3.football.api-sports.io/fixtures?from=2026-06-01&to=2026-06-05&season=2026&status=FT`,
-    {
-      headers: { 'x-apisports-key': apiKey },
-      next: { revalidate: 0 },
-    }
-  );
+  let res: Response;
+  try {
+    res = await fetch(
+      `https://v3.football.api-sports.io/fixtures?from=2026-06-01&to=2026-06-05&season=2026&status=FT`,
+      {
+        headers: { 'x-apisports-key': apiKey },
+        next: { revalidate: 0 },
+      }
+    );
+  } catch {
+    return NextResponse.json({ error: 'API request failed: network error' }, { status: 502 });
+  }
 
   if (!res.ok) {
     return NextResponse.json({ error: `API request failed: ${res.status}` }, { status: 502 });
@@ -78,10 +88,15 @@ export async function GET(request: Request) {
       continue;
     }
 
-    await supabase
+    const { error: updateError } = await supabase
       .from('friendly_matches')
       .update({ home_goals: homeGoals, away_goals: awayGoals, status: 'finished' })
       .eq('id', match.id);
+
+    if (updateError) {
+      skipped.push(`${fixture.teams.home.name} vs ${fixture.teams.away.name}`);
+      continue;
+    }
 
     updated++;
   }
@@ -91,9 +106,4 @@ export async function GET(request: Request) {
     total: fixtures.length,
     skipped: skipped.length > 0 ? skipped : undefined,
   });
-}
-
-interface ApiFixture {
-  teams: { home: { name: string }; away: { name: string } };
-  goals: { home: number | null; away: number | null };
 }
