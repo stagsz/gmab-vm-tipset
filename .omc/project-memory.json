@@ -42,7 +42,7 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "cd \"C:\\Users\\staff\\anthropicFun\\MYkicktipp\\gmab-vm-tipset\" && npx tsc --noEmit 2>&1",
+    "buildCommand": "cd \"C:\\Users\\staff\\anthropicFun\\MYkicktipp\\gmab-vm-tipset\" && npm run build 2>&1 | tail -25",
     "testCommand": null,
     "lintCommand": "npm run lint",
     "devCommand": "npm run dev",
@@ -134,6 +134,12 @@
   },
   "hotPaths": [
     {
+      "path": "src\\app\\api\\sync-friendly-scores\\route.ts",
+      "accessCount": 9,
+      "lastAccessed": 1780324734028,
+      "type": "file"
+    },
+    {
       "path": "src\\app\\tipset\\page.tsx",
       "accessCount": 4,
       "lastAccessed": 1779393472769,
@@ -150,6 +156,12 @@
       "accessCount": 3,
       "lastAccessed": 1780323796468,
       "type": "directory"
+    },
+    {
+      "path": "src\\app\\api\\sync-scores\\route.ts",
+      "accessCount": 3,
+      "lastAccessed": 1780324644786,
+      "type": "file"
     },
     {
       "path": "src\\lib\\supabase.ts",
@@ -233,6 +245,18 @@
       "path": "src\\components\\Navbar.tsx",
       "accessCount": 1,
       "lastAccessed": 1780323800448,
+      "type": "file"
+    },
+    {
+      "path": "src\\i18n\\sv.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780323920659,
+      "type": "file"
+    },
+    {
+      "path": "src\\i18n\\it.ts",
+      "accessCount": 1,
+      "lastAccessed": 1780323922447,
       "type": "file"
     }
   ],
