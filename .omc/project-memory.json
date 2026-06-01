@@ -42,7 +42,7 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "cd \"C:\\Users\\staff\\anthropicFun\\MYkicktipp\\gmab-vm-tipset\" && npm run build 2>&1 | tail -25",
+    "buildCommand": "cd \"C:\\Users\\staff\\anthropicFun\\MYkicktipp\\gmab-vm-tipset\" && npm run build 2>&1 | tail -20",
     "testCommand": null,
     "lintCommand": "npm run lint",
     "devCommand": "npm run dev",
