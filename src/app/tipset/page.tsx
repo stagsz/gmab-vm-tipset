@@ -125,8 +125,10 @@ export default function TipsetPage() {
           setBonus(bonusMap);
         }
       } else {
+        // selectedPlayerId not yet set — stay in loading state until player?.id effect fires
         setPredictions({});
         setBonus({});
+        return;
       }
 
       setFetching(false);
