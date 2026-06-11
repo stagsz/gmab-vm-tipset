@@ -86,10 +86,15 @@ function ResultsTab({ t }: { t: ReturnType<typeof useLocale>['t'] }) {
     const away = parseInt(val.away, 10);
     if (isNaN(home) || isNaN(away)) return;
 
-    await supabase
+    const { error } = await supabase
       .from('matches')
       .update({ home_goals: home, away_goals: away, status: 'finished' })
       .eq('id', match.id);
+
+    if (error) {
+      setSyncMsg(`Save error: ${error.message}`);
+      return;
+    }
 
     setMatches((prev) =>
       prev.map((m) =>
@@ -110,7 +115,7 @@ function ResultsTab({ t }: { t: ReturnType<typeof useLocale>['t'] }) {
     setSyncing(true);
     setSyncMsg('');
     try {
-      const res = await fetch('/api/sync-scores');
+      const res = await fetch('/api/admin-sync');
       const json = await res.json();
       if (!res.ok) {
         setSyncMsg(`Error: ${json.error}`);
