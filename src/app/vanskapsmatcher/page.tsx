@@ -114,7 +114,7 @@ export default function VanskapsmatcherPage() {
     if (!player) return;
     setSaving(true);
     const rows = matches
-      .filter(m => !isMatchLocked(m.match_date))
+      .filter(m => player.is_admin || !isMatchLocked(m.match_date))
       .map(m => {
         const pred = myPreds[m.id];
         if (!pred || pred.home === '' || pred.away === '') return null;
@@ -285,7 +285,7 @@ export default function VanskapsmatcherPage() {
                     </div>
                   )}
                 </div>
-              ) : locked ? (
+              ) : (locked && !player?.is_admin) ? (
                 <p className="text-sm text-gray-500 flex items-center gap-2">
                   <Lock className="h-4 w-4" />
                   {t.friendly.matchLocked}
@@ -393,7 +393,7 @@ export default function VanskapsmatcherPage() {
         );
       })}
 
-      {player && !fetching && matches.some(m => !isMatchLocked(m.match_date)) && (
+      {player && !fetching && (player.is_admin || matches.some(m => !isMatchLocked(m.match_date))) && (
         <div className="flex flex-col items-end gap-2 pb-8">
           {saveError && <p className="text-xs text-red-400">{saveError}</p>}
           <button
