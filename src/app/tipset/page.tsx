@@ -56,14 +56,18 @@ export default function TipsetPage() {
 
   const isGloballyLocked = new Date() > DEADLINE;
 
+  // effectivePlayerId: the player whose tips are being viewed/edited.
+  // selectedPlayerId=null means "follow the logged-in player" (default).
+  const effectivePlayerId = selectedPlayerId ?? player?.id ?? null;
+
   function isMatchLocked(matchDate: string): boolean {
     const kickOff = new Date(matchDate);
     return Date.now() >= kickOff.getTime() - 5 * 60 * 1000;
   }
 
-  // Reset selected player when login state changes
+  // When the logged-in player changes (login/logout), clear any explicit selection
   useEffect(() => {
-    setSelectedPlayerId(player?.id ?? null);
+    setSelectedPlayerId(null);
   }, [player?.id]);
 
   // Fetch all players for the selector (once)
@@ -77,7 +81,7 @@ export default function TipsetPage() {
       });
   }, []);
 
-  // Fetch matches + predictions + bonus for the selected player
+  // Fetch matches + predictions + bonus whenever the effective player changes
   useEffect(() => {
     async function fetchData() {
       setFetching(true);
@@ -90,11 +94,11 @@ export default function TipsetPage() {
 
       if (matchData) setMatchList(matchData as SupabaseMatch[]);
 
-      if (selectedPlayerId) {
+      if (effectivePlayerId) {
         const { data: predData } = await supabase
           .from('predictions')
           .select('match_id, home_goals, away_goals')
-          .eq('player_id', selectedPlayerId);
+          .eq('player_id', effectivePlayerId);
 
         if (predData) {
           const matchById: Record<number, number> = {};
@@ -117,7 +121,7 @@ export default function TipsetPage() {
         const { data: bonusData } = await supabase
           .from('bonus_answers')
           .select('question_key, answer')
-          .eq('player_id', selectedPlayerId);
+          .eq('player_id', effectivePlayerId);
 
         if (bonusData) {
           const bonusMap: BonusAnswers = {};
@@ -125,21 +129,20 @@ export default function TipsetPage() {
           setBonus(bonusMap);
         }
       } else {
-        // selectedPlayerId not yet set — stay in loading state until player?.id effect fires
         setPredictions({});
         setBonus({});
-        return;
       }
 
       setFetching(false);
     }
 
     fetchData();
-  }, [selectedPlayerId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectivePlayerId]);
 
-  const canEdit = !!player && (selectedPlayerId === player.id || player.is_admin);
+  const canEdit = !!player && (effectivePlayerId === player.id || player.is_admin);
   const isViewingOther = !!player && !!selectedPlayerId && selectedPlayerId !== player.id;
-  const selectedPlayerName = players.find((p) => p.id === selectedPlayerId)?.name ?? '';
+  const selectedPlayerName = players.find((p) => p.id === effectivePlayerId)?.name ?? '';
 
   function setScore(matchNr: number, side: 'home' | 'away', val: string) {
     if (val !== '' && !/^\d{0,2}$/.test(val)) return;
@@ -151,7 +154,7 @@ export default function TipsetPage() {
   }
 
   async function handleSave() {
-    if (!player || !selectedPlayerId) return;
+    if (!player || !effectivePlayerId) return;
     setSaving(true);
 
     const matchByNr: Record<number, number> = {};
@@ -166,7 +169,7 @@ export default function TipsetPage() {
         player.is_admin || !isMatchLocked(matchDateByNr[parseInt(matchNrStr, 10)])
       )
       .map(([matchNrStr, pred]) => ({
-        player_id: selectedPlayerId,
+        player_id: effectivePlayerId,
         match_id: matchByNr[parseInt(matchNrStr, 10)],
         home_goals: parseInt(pred.home, 10),
         away_goals: parseInt(pred.away, 10),
@@ -182,7 +185,7 @@ export default function TipsetPage() {
     const bonusRows = (Object.entries(bonus) as [BonusQuestionKey, string][])
       .filter(([, answer]) => answer.trim() !== '')
       .map(([question_key, answer]) => ({
-        player_id: selectedPlayerId,
+        player_id: effectivePlayerId,
         question_key,
         answer: answer.trim(),
       }));
@@ -263,7 +266,7 @@ export default function TipsetPage() {
         <div className="flex items-center gap-3">
           <Users className="h-4 w-4 text-gray-400 shrink-0" />
           <select
-            value={selectedPlayerId ?? ''}
+            value={effectivePlayerId ?? ''}
             onChange={(e) => {
               setSelectedPlayerId(e.target.value || null);
               setSaved(false);
