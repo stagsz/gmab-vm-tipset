@@ -2,7 +2,7 @@ export const it = {
   app: {
     title: "GMAB Pronostici Mondiali 2026",
     subtitle: "FIFA World Cup 2026 - Gara di pronostici",
-    deadline: "Scadenza: 11 giugno 2026",
+    deadline: "Scadenza: 13 giugno 2026 00:00",
   },
   nav: {
     home: "Home",
