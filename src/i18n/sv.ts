@@ -75,6 +75,10 @@ export const sv = {
     bronzeWinnerPts: "20 poäng",
     mostGoalsGroupPts: "10 poäng",
     mostConcededGroupPts: "10 poäng",
+    selectPlayer: "Välj spelare",
+    youSuffix: "(du)",
+    viewingReadOnly: "tips (skrivskyddat)",
+    adminEditing: "Admin: redigerar",
   },
   leaderboard: {
     title: "Ställning",

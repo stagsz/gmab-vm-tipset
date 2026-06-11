@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronDown, ChevronRight, Save, Lock, CreditCard } from 'lucide-react';
+import { ChevronDown, ChevronRight, Save, Lock, CreditCard, Users } from 'lucide-react';
 import { useLocale } from '@/context/LocaleContext';
 import { usePlayer } from '@/context/PlayerContext';
 import { groups, bonusQuestions, DEADLINE, BonusQuestionKey } from '@/data/matches';
@@ -18,6 +18,11 @@ interface SupabaseMatch {
   home_goals: number | null;
   away_goals: number | null;
   status: string;
+}
+
+interface PlayerRow {
+  id: string;
+  name: string;
 }
 
 type ScorePrediction = { home: string; away: string };
@@ -46,44 +51,55 @@ export default function TipsetPage() {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [players, setPlayers] = useState<PlayerRow[]>([]);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
   const isGloballyLocked = new Date() > DEADLINE;
 
   function isMatchLocked(matchDate: string): boolean {
     const kickOff = new Date(matchDate);
-    return Date.now() >= kickOff.getTime() - 5 * 60 * 1000; // lock 5 min before kick-off
+    return Date.now() >= kickOff.getTime() - 5 * 60 * 1000;
   }
 
-  // Fetch matches + existing predictions
+  // Reset selected player when login state changes
+  useEffect(() => {
+    setSelectedPlayerId(player?.id ?? null);
+  }, [player?.id]);
+
+  // Fetch all players for the selector (once)
+  useEffect(() => {
+    supabase
+      .from('players')
+      .select('id, name')
+      .order('name', { ascending: true })
+      .then(({ data }) => {
+        if (data) setPlayers(data as PlayerRow[]);
+      });
+  }, []);
+
+  // Fetch matches + predictions + bonus for the selected player
   useEffect(() => {
     async function fetchData() {
       setFetching(true);
 
-      // Fetch all matches
       const { data: matchData } = await supabase
         .from('matches')
         .select('*')
         .order('match_date', { ascending: true })
         .order('match_nr', { ascending: true });
 
-      if (matchData) {
-        setMatchList(matchData as SupabaseMatch[]);
-      }
+      if (matchData) setMatchList(matchData as SupabaseMatch[]);
 
-      // Fetch existing predictions for this player
-      if (player) {
+      if (selectedPlayerId) {
         const { data: predData } = await supabase
           .from('predictions')
           .select('match_id, home_goals, away_goals')
-          .eq('player_id', player.id);
+          .eq('player_id', selectedPlayerId);
 
         if (predData) {
-          // Map match_id -> prediction using match_nr from matchData
           const matchById: Record<number, number> = {};
           if (matchData) {
-            for (const m of matchData as SupabaseMatch[]) {
-              matchById[m.id] = m.match_nr;
-            }
+            for (const m of matchData as SupabaseMatch[]) matchById[m.id] = m.match_nr;
           }
           const predsMap: Predictions = {};
           for (const p of predData) {
@@ -98,26 +114,30 @@ export default function TipsetPage() {
           setPredictions(predsMap);
         }
 
-        // Fetch bonus answers
         const { data: bonusData } = await supabase
           .from('bonus_answers')
           .select('question_key, answer')
-          .eq('player_id', player.id);
+          .eq('player_id', selectedPlayerId);
 
         if (bonusData) {
           const bonusMap: BonusAnswers = {};
-          for (const b of bonusData) {
-            bonusMap[b.question_key as BonusQuestionKey] = b.answer;
-          }
+          for (const b of bonusData) bonusMap[b.question_key as BonusQuestionKey] = b.answer;
           setBonus(bonusMap);
         }
+      } else {
+        setPredictions({});
+        setBonus({});
       }
 
       setFetching(false);
     }
 
     fetchData();
-  }, [player]);
+  }, [selectedPlayerId]);
+
+  const canEdit = !!player && (selectedPlayerId === player.id || player.is_admin);
+  const isViewingOther = !!player && !!selectedPlayerId && selectedPlayerId !== player.id;
+  const selectedPlayerName = players.find((p) => p.id === selectedPlayerId)?.name ?? '';
 
   function setScore(matchNr: number, side: 'home' | 'away', val: string) {
     if (val !== '' && !/^\d{0,2}$/.test(val)) return;
@@ -129,24 +149,22 @@ export default function TipsetPage() {
   }
 
   async function handleSave() {
-    if (!player) return;
+    if (!player || !selectedPlayerId) return;
     setSaving(true);
 
-    // Build match_id lookup from match_nr
     const matchByNr: Record<number, number> = {};
-    for (const m of matchList) {
-      matchByNr[m.match_nr] = m.id;
-    }
+    for (const m of matchList) matchByNr[m.match_nr] = m.id;
 
-    // Upsert predictions — skip any match already locked (5 min before kick-off)
     const matchDateByNr: Record<number, string> = {};
     for (const m of matchList) matchDateByNr[m.match_nr] = m.match_date;
 
     const predRows = Object.entries(predictions)
       .filter(([, pred]) => pred.home !== '' && pred.away !== '')
-      .filter(([matchNrStr]) => !isMatchLocked(matchDateByNr[parseInt(matchNrStr, 10)]))
+      .filter(([matchNrStr]) =>
+        player.is_admin || !isMatchLocked(matchDateByNr[parseInt(matchNrStr, 10)])
+      )
       .map(([matchNrStr, pred]) => ({
-        player_id: player.id,
+        player_id: selectedPlayerId,
         match_id: matchByNr[parseInt(matchNrStr, 10)],
         home_goals: parseInt(pred.home, 10),
         away_goals: parseInt(pred.away, 10),
@@ -159,11 +177,10 @@ export default function TipsetPage() {
         .upsert(predRows, { onConflict: 'player_id,match_id' });
     }
 
-    // Upsert bonus answers
     const bonusRows = (Object.entries(bonus) as [BonusQuestionKey, string][])
       .filter(([, answer]) => answer.trim() !== '')
       .map(([question_key, answer]) => ({
-        player_id: player.id,
+        player_id: selectedPlayerId,
         question_key,
         answer: answer.trim(),
       }));
@@ -221,7 +238,6 @@ export default function TipsetPage() {
     );
   }
 
-  // Group matches by group_letter
   const matchesByGroup: Record<string, SupabaseMatch[]> = {};
   for (const m of matchList) {
     if (!matchesByGroup[m.group_letter]) matchesByGroup[m.group_letter] = [];
@@ -232,7 +248,7 @@ export default function TipsetPage() {
     <div className="mx-auto max-w-4xl px-4 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">{t.predictions.title}</h1>
-        {isGloballyLocked && (
+        {isGloballyLocked && !player.is_admin && (
           <span className="flex items-center gap-1.5 rounded-full bg-red-900/40 border border-red-800 px-3 py-1 text-xs text-red-400">
             <Lock className="h-3.5 w-3.5" />
             {t.predictions.locked}
@@ -240,8 +256,44 @@ export default function TipsetPage() {
         )}
       </div>
 
-      {/* Payment reminder */}
-      {!player.paid && (
+      {/* Player selector */}
+      {players.length > 1 && (
+        <div className="flex items-center gap-3">
+          <Users className="h-4 w-4 text-gray-400 shrink-0" />
+          <select
+            value={selectedPlayerId ?? ''}
+            onChange={(e) => {
+              setSelectedPlayerId(e.target.value || null);
+              setSaved(false);
+            }}
+            className="flex-1 rounded border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:border-green-500 focus:outline-none"
+          >
+            {players.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+                {p.id === player.id ? ` ${t.predictions.youSuffix}` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Context banner when viewing another player */}
+      {isViewingOther && !player.is_admin && (
+        <div className="flex items-center gap-2 rounded-lg bg-blue-900/20 border border-blue-800/40 px-4 py-2.5 text-sm text-blue-300">
+          <Users className="h-4 w-4 shrink-0" />
+          {selectedPlayerName}s {t.predictions.viewingReadOnly}
+        </div>
+      )}
+      {isViewingOther && player.is_admin && (
+        <div className="flex items-center gap-2 rounded-lg bg-amber-900/20 border border-amber-800/40 px-4 py-2.5 text-sm text-amber-300">
+          <Users className="h-4 w-4 shrink-0" />
+          {t.predictions.adminEditing} {selectedPlayerName}s tips
+        </div>
+      )}
+
+      {/* Payment reminder — only for own tips */}
+      {!isViewingOther && !player.paid && (
         <div className="flex items-center gap-2.5 rounded-lg bg-amber-900/30 border border-amber-700/50 px-4 py-3 text-sm text-amber-300">
           <CreditCard className="h-4 w-4 shrink-0" />
           {t.admin.paymentReminder}
@@ -274,6 +326,9 @@ export default function TipsetPage() {
                 {groupMatches.map((match) => {
                   const pred = predictions[match.match_nr] ?? { home: '', away: '' };
                   const sign = calcSign(pred.home, pred.away);
+                  const matchLocked = isMatchLocked(match.match_date);
+                  const inputDisabled =
+                    !canEdit || (!player.is_admin && (isGloballyLocked || matchLocked));
 
                   return (
                     <div
@@ -301,7 +356,7 @@ export default function TipsetPage() {
                           max={99}
                           value={pred.home}
                           onChange={(e) => setScore(match.match_nr, 'home', e.target.value)}
-                          disabled={isGloballyLocked || isMatchLocked(match.match_date)}
+                          disabled={inputDisabled}
                           className="w-10 rounded border border-gray-700 bg-gray-800 text-center text-white text-sm py-1 disabled:opacity-50 focus:border-green-500 focus:outline-none"
                           placeholder="-"
                         />
@@ -312,7 +367,7 @@ export default function TipsetPage() {
                           max={99}
                           value={pred.away}
                           onChange={(e) => setScore(match.match_nr, 'away', e.target.value)}
-                          disabled={isGloballyLocked || isMatchLocked(match.match_date)}
+                          disabled={inputDisabled}
                           className="w-10 rounded border border-gray-700 bg-gray-800 text-center text-white text-sm py-1 disabled:opacity-50 focus:border-green-500 focus:outline-none"
                           placeholder="-"
                         />
@@ -324,7 +379,7 @@ export default function TipsetPage() {
                       </span>
 
                       {/* 1X2 sign or lock icon */}
-                      {isMatchLocked(match.match_date) ? (
+                      {matchLocked ? (
                         <Lock className="h-3.5 w-3.5 text-gray-600 shrink-0" />
                       ) : (
                         <span
@@ -369,7 +424,7 @@ export default function TipsetPage() {
                   setBonus((prev) => ({ ...prev, [bq.key]: e.target.value }));
                   setSaved(false);
                 }}
-                disabled={isGloballyLocked}
+                disabled={!canEdit || (!player.is_admin && isGloballyLocked)}
                 placeholder="..."
                 className="w-full rounded border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-600 disabled:opacity-50 focus:border-green-500 focus:outline-none"
               />
@@ -378,8 +433,8 @@ export default function TipsetPage() {
         </div>
       </div>
 
-      {/* Save button */}
-      {!isGloballyLocked && (
+      {/* Save button — shown only when the user can edit this player's tips */}
+      {canEdit && (player.is_admin || !isGloballyLocked) && (
         <div className="flex justify-end pb-8">
           <button
             onClick={handleSave}

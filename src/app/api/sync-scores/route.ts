@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
 const WC_LEAGUE_ID = process.env.API_FOOTBALL_LEAGUE_ID ?? '1';
+const FRIENDLY_LEAGUE_ID = '10';
 const WC_SEASON = '2026';
 
 // Common name discrepancies between our data and api-football.com
@@ -21,6 +22,19 @@ function normalize(name: string): string {
   return ALIASES[lower] ?? lower;
 }
 
+async function fetchFixtures(apiKey: string, leagueId: string): Promise<{ fixtures: ApiFixture[]; errors: Record<string, string> }> {
+  const res = await fetch(
+    `https://v3.football.api-sports.io/fixtures?league=${leagueId}&season=${WC_SEASON}&status=FT`,
+    { headers: { 'x-apisports-key': apiKey }, next: { revalidate: 0 } }
+  );
+  if (!res.ok) throw new Error(`API request failed: ${res.status}`);
+  const json = await res.json();
+  return {
+    fixtures: json.response ?? [],
+    errors: json.errors && Object.keys(json.errors).length > 0 ? json.errors : {},
+  };
+}
+
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
@@ -36,21 +50,32 @@ export async function GET(request: Request) {
     );
   }
 
-  // Fetch finished fixtures from api-football.com
-  const res = await fetch(
-    `https://v3.football.api-sports.io/fixtures?league=${WC_LEAGUE_ID}&season=${WC_SEASON}&status=FT`,
-    {
-      headers: { 'x-apisports-key': apiKey },
-      next: { revalidate: 0 },
-    }
-  );
+  // Fetch from World Cup and Friendlies leagues in parallel
+  const [wcResult, friendlyResult] = await Promise.allSettled([
+    fetchFixtures(apiKey, WC_LEAGUE_ID),
+    fetchFixtures(apiKey, FRIENDLY_LEAGUE_ID),
+  ]);
 
-  if (!res.ok) {
-    return NextResponse.json({ error: `API request failed: ${res.status}` }, { status: 502 });
+  const apiErrors: Record<string, string> = {};
+  const fixtures: ApiFixture[] = [];
+
+  if (wcResult.status === 'fulfilled') {
+    fixtures.push(...wcResult.value.fixtures);
+    Object.assign(apiErrors, wcResult.value.errors);
+  } else {
+    apiErrors['wc_fetch'] = wcResult.reason?.message ?? 'World Cup fetch failed';
   }
 
-  const json = await res.json();
-  const fixtures: ApiFixture[] = json.response ?? [];
+  if (friendlyResult.status === 'fulfilled') {
+    fixtures.push(...friendlyResult.value.fixtures);
+    Object.assign(apiErrors, friendlyResult.value.errors);
+  } else {
+    apiErrors['friendly_fetch'] = friendlyResult.reason?.message ?? 'Friendlies fetch failed';
+  }
+
+  if (fixtures.length === 0 && Object.keys(apiErrors).length > 0) {
+    return NextResponse.json({ error: 'API returned no data', details: apiErrors }, { status: 502 });
+  }
 
   // Load our matches from Supabase
   const { data: matches } = await supabase
@@ -93,6 +118,7 @@ export async function GET(request: Request) {
     updated,
     total: fixtures.length,
     skipped: skipped.length > 0 ? skipped : undefined,
+    api_errors: Object.keys(apiErrors).length > 0 ? apiErrors : undefined,
   });
 }
 

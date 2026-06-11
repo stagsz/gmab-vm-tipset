@@ -75,6 +75,10 @@ export const it = {
     bronzeWinnerPts: "20 punti",
     mostGoalsGroupPts: "10 punti",
     mostConcededGroupPts: "10 punti",
+    selectPlayer: "Seleziona giocatore",
+    youSuffix: "(tu)",
+    viewingReadOnly: "pronostici (sola lettura)",
+    adminEditing: "Admin: modifica",
   },
   leaderboard: {
     title: "Classifica",
