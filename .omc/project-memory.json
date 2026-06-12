@@ -42,7 +42,7 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "cd \"C:\\Users\\staff\\anthropicFun\\MYkicktipp\\gmab-vm-tipset\" && npm run build 2>&1 | tail -40",
+    "buildCommand": "cd \"C:\\Users\\staff\\anthropicFun\\MYkicktipp\\gmab-vm-tipset\" && npm run build 2>&1 | tail -20",
     "testCommand": null,
     "lintCommand": "npm run lint",
     "devCommand": "npm run dev",
@@ -134,21 +134,21 @@
   },
   "hotPaths": [
     {
+      "path": "src\\app\\vanskapsmatcher\\page.tsx",
+      "accessCount": 23,
+      "lastAccessed": 1780326106774,
+      "type": "file"
+    },
+    {
       "path": "src\\app\\api\\sync-friendly-scores\\route.ts",
-      "accessCount": 10,
-      "lastAccessed": 1780325556797,
+      "accessCount": 11,
+      "lastAccessed": 1780325776963,
       "type": "file"
     },
     {
       "path": "src\\app\\tipset\\page.tsx",
       "accessCount": 7,
       "lastAccessed": 1780325484484,
-      "type": "file"
-    },
-    {
-      "path": "src\\app\\vanskapsmatcher\\page.tsx",
-      "accessCount": 7,
-      "lastAccessed": 1780325544413,
       "type": "file"
     },
     {
@@ -159,14 +159,14 @@
     },
     {
       "path": "src\\i18n\\sv.ts",
-      "accessCount": 5,
-      "lastAccessed": 1780325556130,
+      "accessCount": 6,
+      "lastAccessed": 1780325778219,
       "type": "file"
     },
     {
       "path": "src\\i18n\\it.ts",
-      "accessCount": 4,
-      "lastAccessed": 1780325551285,
+      "accessCount": 5,
+      "lastAccessed": 1780325783745,
       "type": "file"
     },
     {
@@ -179,6 +179,12 @@
       "path": "src\\app\\api\\sync-scores\\route.ts",
       "accessCount": 3,
       "lastAccessed": 1780324644786,
+      "type": "file"
+    },
+    {
+      "path": "src\\context\\PlayerContext.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1780325792081,
       "type": "file"
     },
     {
@@ -206,9 +212,15 @@
       "type": "file"
     },
     {
-      "path": "src\\context\\PlayerContext.tsx",
+      "path": "src\\components\\Navbar.tsx",
       "accessCount": 2,
-      "lastAccessed": 1780325295573,
+      "lastAccessed": 1780325784788,
+      "type": "file"
+    },
+    {
+      "path": "src\\context\\LocaleContext.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1780326065790,
       "type": "file"
     },
     {
@@ -260,9 +272,9 @@
       "type": "directory"
     },
     {
-      "path": "src\\components\\Navbar.tsx",
+      "path": "src\\i18n\\index.ts",
       "accessCount": 1,
-      "lastAccessed": 1780323800448,
+      "lastAccessed": 1780325791467,
       "type": "file"
     }
   ],
