@@ -190,7 +190,8 @@ export default function TipsetPage() {
         answer: answer.trim(),
       }));
 
-    if (bonusRows.length > 0) {
+    // Bonus answers lock at the global deadline (unlike match predictions).
+    if (bonusRows.length > 0 && (player.is_admin || !isGloballyLocked)) {
       await supabase
         .from('bonus_answers')
         .upsert(bonusRows, { onConflict: 'player_id,question_key' });
@@ -253,12 +254,6 @@ export default function TipsetPage() {
     <div className="mx-auto max-w-4xl px-4 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">{t.predictions.title}</h1>
-        {isGloballyLocked && !player.is_admin && (
-          <span className="flex items-center gap-1.5 rounded-full bg-red-900/40 border border-red-800 px-3 py-1 text-xs text-red-400">
-            <Lock className="h-3.5 w-3.5" />
-            {t.predictions.locked}
-          </span>
-        )}
       </div>
 
       {/* Player selector */}
@@ -332,8 +327,10 @@ export default function TipsetPage() {
                   const pred = predictions[match.match_nr] ?? { home: '', away: '' };
                   const sign = calcSign(pred.home, pred.away);
                   const matchLocked = isMatchLocked(match.match_date);
+                  // Match predictions lock per-match (5 min before kickoff), NOT at the
+                  // global deadline. The global deadline only governs bonus questions.
                   const inputDisabled =
-                    !canEdit || (!player.is_admin && (isGloballyLocked || matchLocked));
+                    !canEdit || (!player.is_admin && matchLocked);
 
                   return (
                     <div
@@ -438,8 +435,10 @@ export default function TipsetPage() {
         </div>
       </div>
 
-      {/* Save button — shown only when the user can edit this player's tips */}
-      {canEdit && (player.is_admin || !isGloballyLocked) && (
+      {/* Save button — shown whenever the user can edit this player's tips.
+          Match predictions stay editable per-match, so this is no longer gated
+          by the global deadline (handleSave still skips individually locked rows). */}
+      {canEdit && (
         <div className="flex justify-end pb-8">
           <button
             onClick={handleSave}
