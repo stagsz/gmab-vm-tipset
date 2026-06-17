@@ -42,7 +42,7 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "npm run build",
+    "buildCommand": "cd \"C:/Users/staff/anthropicFun/MYkicktipp/gmab-vm-tipset\" && npm run build 2>&1 | tail -25",
     "testCommand": null,
     "lintCommand": "npm run lint",
     "devCommand": "npm run dev",
@@ -164,21 +164,27 @@
       "type": "file"
     },
     {
+      "path": "src\\i18n\\sv.ts",
+      "accessCount": 10,
+      "lastAccessed": 1781645248438,
+      "type": "file"
+    },
+    {
+      "path": "src\\i18n\\it.ts",
+      "accessCount": 8,
+      "lastAccessed": 1781645254340,
+      "type": "file"
+    },
+    {
       "path": "",
       "accessCount": 6,
       "lastAccessed": 1780325552064,
       "type": "directory"
     },
     {
-      "path": "src\\i18n\\sv.ts",
-      "accessCount": 6,
-      "lastAccessed": 1780325778219,
-      "type": "file"
-    },
-    {
-      "path": "src\\i18n\\it.ts",
+      "path": "src\\components\\Navbar.tsx",
       "accessCount": 5,
-      "lastAccessed": 1780325783745,
+      "lastAccessed": 1781645243233,
       "type": "file"
     },
     {
@@ -188,15 +194,15 @@
       "type": "file"
     },
     {
-      "path": "src\\app\\page.tsx",
-      "accessCount": 3,
-      "lastAccessed": 1780323310817,
+      "path": "src\\app\\api\\sync-scores\\route.ts",
+      "accessCount": 4,
+      "lastAccessed": 1781645066760,
       "type": "file"
     },
     {
-      "path": "src\\app\\api\\sync-scores\\route.ts",
-      "accessCount": 3,
-      "lastAccessed": 1780324644786,
+      "path": "src\\app\\page.tsx",
+      "accessCount": 4,
+      "lastAccessed": 1781645066831,
       "type": "file"
     },
     {
@@ -230,12 +236,6 @@
       "type": "file"
     },
     {
-      "path": "src\\components\\Navbar.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1780325784788,
-      "type": "file"
-    },
-    {
       "path": "src\\context\\LocaleContext.tsx",
       "accessCount": 2,
       "lastAccessed": 1780326065790,
@@ -246,6 +246,12 @@
       "accessCount": 2,
       "lastAccessed": 1781634334225,
       "type": "file"
+    },
+    {
+      "path": "src\\app\\leaderboard\\page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1781644607686,
+      "type": "directory"
     },
     {
       "path": "package.json",
@@ -278,16 +284,52 @@
       "type": "directory"
     },
     {
-      "path": "src\\app\\leaderboard\\page.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1780323376909,
-      "type": "directory"
-    },
-    {
       "path": "src\\i18n\\index.ts",
       "accessCount": 1,
       "lastAccessed": 1780325791467,
       "type": "file"
+    },
+    {
+      "path": "src\\app\\matches\\page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781644608221,
+      "type": "file"
+    },
+    {
+      "path": "src\\lib\\syncScores.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781645066686,
+      "type": "file"
+    },
+    {
+      "path": "vercel.json",
+      "accessCount": 1,
+      "lastAccessed": 1781645119751,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\facit\\page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781645189855,
+      "type": "file"
+    },
+    {
+      "path": "match-facit-view.sql",
+      "accessCount": 1,
+      "lastAccessed": 1781645453289,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\api\\admin-sync\\route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1781645506847,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\admin\\page.tsx",
+      "accessCount": 1,
+      "lastAccessed": 1781645508775,
+      "type": "directory"
     }
   ],
   "userDirectives": []
