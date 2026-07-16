@@ -6,6 +6,7 @@ import { CheckCircle2, Circle, X } from 'lucide-react';
 import { useLocale } from '@/context/LocaleContext';
 import { usePlayer } from '@/context/PlayerContext';
 import { supabase } from '@/lib/supabase';
+import { bonusQuestions, BonusQuestionKey } from '@/data/matches';
 
 interface FacitRow {
   match_nr: number;
@@ -37,17 +38,42 @@ export default function FacitPage() {
   const { t } = useLocale();
   const { player } = usePlayer();
   const [rows, setRows] = useState<FacitRow[]>([]);
+  const [bonusCorrect, setBonusCorrect] = useState<Partial<Record<BonusQuestionKey, string>>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchFacit() {
       setLoading(true);
-      const { data } = await supabase.from('match_facit').select('*');
-      if (data) setRows(data as FacitRow[]);
+      const [facitRes, bonusRes] = await Promise.all([
+        supabase.from('match_facit').select('*'),
+        supabase.from('bonus_correct_answers').select('question_key, correct_answer'),
+      ]);
+      if (facitRes.data) setRows(facitRes.data as FacitRow[]);
+      if (bonusRes.data) {
+        const map: Partial<Record<BonusQuestionKey, string>> = {};
+        for (const b of bonusRes.data) map[b.question_key as BonusQuestionKey] = b.correct_answer;
+        setBonusCorrect(map);
+      }
       setLoading(false);
     }
     fetchFacit();
   }, []);
+
+  const bonusLabels: Record<BonusQuestionKey, string> = {
+    top_scorer: t.predictions.topScorer,
+    champion: t.predictions.champion,
+    bronze_winner: t.predictions.bronzeWinner,
+    most_goals_group: t.predictions.mostGoalsGroup,
+    most_conceded_group: t.predictions.mostConcededGroup,
+  };
+
+  const bonusPts: Record<BonusQuestionKey, string> = {
+    top_scorer: t.predictions.topScorerPts,
+    champion: t.predictions.championPts,
+    bronze_winner: t.predictions.bronzeWinnerPts,
+    most_goals_group: t.predictions.mostGoalsGroupPts,
+    most_conceded_group: t.predictions.mostConcededGroupPts,
+  };
 
   // Group rows by match, newest match first; players sorted by points desc then name.
   const matches: MatchGroup[] = (() => {
@@ -99,13 +125,53 @@ export default function FacitPage() {
         <div className="rounded-xl border border-gray-800 bg-gray-900 px-6 py-12 text-center text-gray-400">
           {t.common.loading}
         </div>
-      ) : matches.length === 0 ? (
-        <div className="rounded-xl border border-gray-800 bg-gray-900 px-6 py-12 text-center text-gray-400">
-          {t.facit.noResults}
-        </div>
       ) : (
-        <div className="space-y-4">
-          {matches.map((m) => (
+        <>
+          {/* Bonus questions — correct answers (multiple teams shown when tied) */}
+          <section className="rounded-xl border border-gray-800 overflow-hidden">
+            <div className="px-4 py-3 bg-gray-900 border-b border-gray-800">
+              <h2 className="font-semibold text-white text-sm">{t.facit.bonusTitle}</h2>
+            </div>
+            <div className="divide-y divide-gray-800">
+              {bonusQuestions.map((bq) => {
+                const raw = bonusCorrect[bq.key];
+                const teams = raw
+                  ? raw.split(',').map((s) => s.trim()).filter(Boolean)
+                  : [];
+                return (
+                  <div key={bq.key} className="flex items-center gap-3 px-4 py-3 bg-gray-950 text-sm">
+                    <span className="flex-1 text-gray-300 truncate">{bonusLabels[bq.key]}</span>
+                    <span className="shrink-0 text-xs font-semibold text-green-400 w-16 text-right">
+                      {bonusPts[bq.key]}
+                    </span>
+                    <div className="shrink-0 flex flex-wrap justify-end gap-1 w-40">
+                      {teams.length > 0 ? (
+                        teams.map((tm) => (
+                          <span
+                            key={tm}
+                            className="rounded-md bg-green-900/40 text-green-300 px-2 py-0.5 text-xs font-medium"
+                          >
+                            {tm}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-gray-600">{t.facit.notDecided}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Per-match results */}
+          {matches.length === 0 ? (
+            <div className="rounded-xl border border-gray-800 bg-gray-900 px-6 py-12 text-center text-gray-400">
+              {t.facit.noResults}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {matches.map((m) => (
             <div key={m.match_nr} className="rounded-xl border border-gray-800 overflow-hidden">
               {/* Match header: result */}
               <div className="flex items-center gap-3 bg-gray-900 px-4 py-3 border-b border-gray-800">
@@ -163,8 +229,10 @@ export default function FacitPage() {
                 })}
               </div>
             </div>
-          ))}
-        </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -138,5 +138,8 @@ export const sv = {
     miss: "miss",
     points: "p",
     noResults: "Inga avslutade matcher ännu",
+    bonusTitle: "Bonusfrågor",
+    correctAnswer: "Rätt svar",
+    notDecided: "Ej avgjort ännu",
   },
 } as const;

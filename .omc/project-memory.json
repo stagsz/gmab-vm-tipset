@@ -42,7 +42,7 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "npm run build",
+    "buildCommand": "npm run lint 2>&1 | tail -30 && echo \"---BUILD---\" && npm run build 2>&1 | tail -40",
     "testCommand": null,
     "lintCommand": "npm run lint",
     "devCommand": "npm run dev",
@@ -162,8 +162,14 @@
     },
     {
       "path": "src\\app\\tipset\\page.tsx",
-      "accessCount": 13,
-      "lastAccessed": 1781638084731,
+      "accessCount": 14,
+      "lastAccessed": 1784217312350,
+      "type": "file"
+    },
+    {
+      "path": "src\\i18n\\sv.ts",
+      "accessCount": 12,
+      "lastAccessed": 1784217477769,
       "type": "file"
     },
     {
@@ -173,15 +179,15 @@
       "type": "file"
     },
     {
-      "path": "src\\i18n\\sv.ts",
+      "path": "src\\i18n\\it.ts",
       "accessCount": 10,
-      "lastAccessed": 1781645248438,
+      "lastAccessed": 1784217478222,
       "type": "file"
     },
     {
-      "path": "src\\i18n\\it.ts",
+      "path": "src\\app\\facit\\page.tsx",
       "accessCount": 8,
-      "lastAccessed": 1781645254340,
+      "lastAccessed": 1784217554862,
       "type": "file"
     },
     {
@@ -227,6 +233,12 @@
       "type": "directory"
     },
     {
+      "path": "src\\app\\admin\\page.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1784217568530,
+      "type": "directory"
+    },
+    {
       "path": "src\\lib\\supabase.ts",
       "accessCount": 2,
       "lastAccessed": 1779301395335,
@@ -261,18 +273,6 @@
       "accessCount": 2,
       "lastAccessed": 1781634334225,
       "type": "file"
-    },
-    {
-      "path": "src\\app\\facit\\page.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1784216468328,
-      "type": "file"
-    },
-    {
-      "path": "src\\app\\admin\\page.tsx",
-      "accessCount": 2,
-      "lastAccessed": 1784216480951,
-      "type": "directory"
     },
     {
       "path": "package.json",

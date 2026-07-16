@@ -138,5 +138,8 @@ export const it = {
     miss: "errato",
     points: "p",
     noResults: "Nessuna partita conclusa",
+    bonusTitle: "Domande bonus",
+    correctAnswer: "Risposta corretta",
+    notDecided: "Non ancora deciso",
   },
 } as const;

@@ -342,6 +342,12 @@ function BonusTab({ t }: { t: ReturnType<typeof useLocale>['t'] }) {
 
   return (
     <div className="space-y-4">
+      <p className="text-xs text-gray-500 leading-relaxed">
+        Vid oavgjort, ange flera lag separerade med komma (t.ex. &quot;Irak, Tunisien&quot;) — alla
+        som svarat något av dem får poäng.
+        <br />
+        In caso di parità, inserisci più squadre separate da virgola (es. &quot;Irak, Tunisien&quot;).
+      </p>
       {bonusQuestions.map((bq) => (
         <div key={bq.key} className="space-y-1.5">
           <label className="block text-sm text-gray-300">{bonusLabels[bq.key]}</label>
