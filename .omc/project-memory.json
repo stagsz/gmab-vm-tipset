@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1781633123633,
+  "lastScanned": 1784215415528,
   "projectRoot": "C:\\Users\\staff\\anthropicFun\\MYkicktipp\\gmab-vm-tipset",
   "techStack": {
     "languages": [
@@ -42,7 +42,7 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "cd \"C:/Users/staff/anthropicFun/MYkicktipp/gmab-vm-tipset\" && npm run build 2>&1 | tail -25",
+    "buildCommand": "npm run build",
     "testCommand": null,
     "lintCommand": "npm run lint",
     "devCommand": "npm run dev",
@@ -73,11 +73,20 @@
   },
   "customNotes": [],
   "directoryMap": {
+    "backups": {
+      "path": "backups",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1784215415383,
+      "keyFiles": [
+        "backup-before-match-times-2026-06-16.json"
+      ]
+    },
     "public": {
       "path": "public",
       "purpose": "Public files",
       "fileCount": 5,
-      "lastAccessed": 1781633123571,
+      "lastAccessed": 1784215415385,
       "keyFiles": [
         "file.svg",
         "globe.svg",
@@ -90,7 +99,7 @@
       "path": "src",
       "purpose": "Source code",
       "fileCount": 1,
-      "lastAccessed": 1781633123572,
+      "lastAccessed": 1784215415397,
       "keyFiles": [
         "AGENTS.md"
       ]
@@ -99,7 +108,7 @@
       "path": "src\\app",
       "purpose": "Application code",
       "fileCount": 5,
-      "lastAccessed": 1781633123583,
+      "lastAccessed": 1784215415400,
       "keyFiles": [
         "AGENTS.md",
         "favicon.ico",
@@ -110,7 +119,7 @@
       "path": "src\\components",
       "purpose": "UI components",
       "fileCount": 2,
-      "lastAccessed": 1781633123584,
+      "lastAccessed": 1784215415401,
       "keyFiles": [
         "AGENTS.md",
         "Navbar.tsx"
@@ -120,7 +129,7 @@
       "path": "src\\data",
       "purpose": "Data files",
       "fileCount": 2,
-      "lastAccessed": 1781633123584,
+      "lastAccessed": 1784215415402,
       "keyFiles": [
         "AGENTS.md",
         "matches.ts"
@@ -130,7 +139,7 @@
       "path": "src\\lib",
       "purpose": "Library code",
       "fileCount": 3,
-      "lastAccessed": 1781633123584,
+      "lastAccessed": 1784215415408,
       "keyFiles": [
         "AGENTS.md",
         "supabase.ts",
@@ -189,8 +198,8 @@
     },
     {
       "path": "src\\data\\matches.ts",
-      "accessCount": 4,
-      "lastAccessed": 1781637883304,
+      "accessCount": 5,
+      "lastAccessed": 1784216442223,
       "type": "file"
     },
     {
@@ -210,6 +219,12 @@
       "accessCount": 3,
       "lastAccessed": 1780325792081,
       "type": "file"
+    },
+    {
+      "path": "src\\app\\leaderboard\\page.tsx",
+      "accessCount": 3,
+      "lastAccessed": 1784216468708,
+      "type": "directory"
     },
     {
       "path": "src\\lib\\supabase.ts",
@@ -248,9 +263,15 @@
       "type": "file"
     },
     {
-      "path": "src\\app\\leaderboard\\page.tsx",
+      "path": "src\\app\\facit\\page.tsx",
       "accessCount": 2,
-      "lastAccessed": 1781644607686,
+      "lastAccessed": 1784216468328,
+      "type": "file"
+    },
+    {
+      "path": "src\\app\\admin\\page.tsx",
+      "accessCount": 2,
+      "lastAccessed": 1784216480951,
       "type": "directory"
     },
     {
@@ -308,12 +329,6 @@
       "type": "file"
     },
     {
-      "path": "src\\app\\facit\\page.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1781645189855,
-      "type": "file"
-    },
-    {
       "path": "match-facit-view.sql",
       "accessCount": 1,
       "lastAccessed": 1781645453289,
@@ -324,12 +339,6 @@
       "accessCount": 1,
       "lastAccessed": 1781645506847,
       "type": "file"
-    },
-    {
-      "path": "src\\app\\admin\\page.tsx",
-      "accessCount": 1,
-      "lastAccessed": 1781645508775,
-      "type": "directory"
     }
   ],
   "userDirectives": []
