@@ -186,8 +186,8 @@
     },
     {
       "path": "src\\app\\facit\\page.tsx",
-      "accessCount": 8,
-      "lastAccessed": 1784217554862,
+      "accessCount": 9,
+      "lastAccessed": 1784218866943,
       "type": "file"
     },
     {
@@ -276,8 +276,14 @@
     },
     {
       "path": "package.json",
-      "accessCount": 1,
-      "lastAccessed": 1779304453691,
+      "accessCount": 2,
+      "lastAccessed": 1784218939820,
+      "type": "file"
+    },
+    {
+      "path": "match-facit-view.sql",
+      "accessCount": 2,
+      "lastAccessed": 1784219670967,
       "type": "file"
     },
     {
@@ -329,15 +335,15 @@
       "type": "file"
     },
     {
-      "path": "match-facit-view.sql",
-      "accessCount": 1,
-      "lastAccessed": 1781645453289,
-      "type": "file"
-    },
-    {
       "path": "src\\app\\api\\admin-sync\\route.ts",
       "accessCount": 1,
       "lastAccessed": 1781645506847,
+      "type": "file"
+    },
+    {
+      "path": "leaderboard-bonus-ties.sql",
+      "accessCount": 1,
+      "lastAccessed": 1784219684901,
       "type": "file"
     }
   ],
